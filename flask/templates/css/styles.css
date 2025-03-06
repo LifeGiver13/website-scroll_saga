@@ -1,4 +1,4 @@
-* {
+/* * {
     padding: 2px;
     margin: 0px;
 
@@ -23,7 +23,7 @@ main {
 
 footer {
     background-color: red;
-    height: 5vh;
+    height: 2+ 335vh;
 }
 
 .logo {
@@ -63,7 +63,7 @@ li a.current {
 }
 
 li a:hover {
-    background: red;
+    background: rosybrown;
     color: white;
 }
 
@@ -75,4 +75,45 @@ li a:hover {
 .container>li {
     padding: 10px 107.5;
     font: 1.25em sans-serif;
+} */
+#myDIV {
+    width: 27vw;
+    height: auto;
+    border: black;
+
+    margin: 13px;
+    padding: 5px;
+
+
+}
+
+h1>img {
+    width: 7%;
+    height: auto;
+    margin: 0px;
+
+}
+
+
+.flex-cont {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 10px;
+    flex-direction: row;
+    justify-content: left;
+}
+
+
+.flex-cont>div {
+    padding: 2px 5px;
+    font: 1.25;
+}
+
+
+img {
+    border: 2px solid red;
+    margin: 70px;
+    width: 50%;
+    height: auto;
+    margin: 25%;
 }
