@@ -1,15 +1,28 @@
-#header {
-    background-color: red;
-    height: 10vh;
-}
-
 #wrapper {
-    margin: 10px;
+    margin: 0px 0px;
+    padding: 0px;
+    width: 100%;
 }
 
 nav {
-    height: 5vh;
-    background-color: rosybrown;
+    height: 10vh;
+    background-color: red;
+}
+
+#footer {
+    height: 10vh;
+    background-color: red;
+}
+
+main {
+    background-color: #f5deb3;
+    height: auto;
+
+}
+
+
+li>a {
+    color: black;
 }
 
 /* * {
@@ -21,11 +34,7 @@ nav {
 
 
 
-main {
-    background-color: rosybrown;
-    height: auto;
 
-}
 
 footer {
     background-color: red;
@@ -84,19 +93,17 @@ li a:hover {
     width: 27vw;
     height: auto;
     border: black;
-
+    background-color: #1e1e2e;
     margin: 13px;
     padding: 5px;
 
 
 }
 
-h1>img {
-    width: 7%;
-    height: auto;
-    margin: 0px;
-
+#myDIV>p {
+    color: #f5deb3;
 }
+
 
 
 .flex-cont {
