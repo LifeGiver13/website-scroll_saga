@@ -1,0 +1,131 @@
+#wrapper {
+    margin: 0px 0px;
+    padding: 0px;
+    width: 100%;
+}
+
+nav {
+    height: 10vh;
+    background-color: red;
+}
+
+#footer {
+    height: 10vh;
+    background-color: red;
+}
+
+main {
+    background-color: #f5deb3;
+    height: auto;
+
+}
+
+
+li>a {
+    color: black;
+}
+
+/* * {
+    padding: 2px;
+    margin: 0px;
+
+}
+
+
+
+
+
+
+footer {
+    background-color: red;
+    height: 2+ 335vh;
+}
+
+.logo {
+    width: 4%;
+    height: auto;
+}
+
+
+
+header h1 {
+    text-align: center;
+    font-size: 2.8em;
+}
+
+ul {
+    list-style-type: none;
+    background: red;
+    overflow: hidden;
+    padding: 10px;
+
+}
+
+li a {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: black;
+    padding: 10px;
+    float: left;
+
+}
+
+li a.current {
+    background: rosybrown;
+}
+
+li a:hover {
+    background: rosybrown;
+    color: white;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.container>li {
+    padding: 10px 107.5;
+    font: 1.25em sans-serif;
+} */
+#myDIV {
+    width: 27vw;
+    height: auto;
+    border: black;
+    background-color: #1e1e2e;
+    margin: 13px 30px;
+    padding: 10px;
+    border-radius: 35px;
+
+
+}
+
+#myDIV>p {
+    color: #f5deb3;
+}
+
+
+
+.flex-cont {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 10px;
+    flex-direction: row;
+    justify-content: left;
+}
+
+
+.flex-cont>div {
+    padding: 2px 5px;
+    font: 1.25;
+}
+
+
+img {
+    border: 2px solid red;
+    margin: 70px;
+    width: 50%;
+    height: auto;
+    margin: 25%;
+}
