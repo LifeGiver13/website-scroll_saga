@@ -6,12 +6,12 @@
 
 nav {
     height: 10vh;
-    background-color: red;
+    background-color: #8b5a2b;
 }
 
 #footer {
     height: 10vh;
-    background-color: red;
+    background-color: #8b5a2b;
 }
 
 main {
@@ -124,7 +124,7 @@ li a:hover {
 
 img {
     border-radius: 15%;
-    border: 2px solid red;
+    border: 2px solid #8b5a2b;
     margin: 70px;
     width: 50%;
     height: auto;
