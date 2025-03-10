@@ -2,15 +2,16 @@
     margin: 0px 0px;
     padding: 0px;
     width: 100%;
+    color: #1e1e2e;
 }
 
 nav {
-    height: 10vh;
+    height: auto;
     background-color: #8b5a2b;
 }
 
 #footer {
-    height: 10vh;
+    height: auto;
     background-color: #8b5a2b;
 }
 
@@ -92,11 +93,10 @@ li a:hover {
 #myDIV {
     width: 27vw;
     height: auto;
-    border: black;
     background-color: #1e1e2e;
     margin: 11px 30px;
-    padding: 5px;
-    border-radius: 35px;
+    padding: 10px;
+    border-radius: 30px;
 
 
 }
@@ -110,15 +110,16 @@ li a:hover {
 .flex-cont {
     display: flex;
     flex-wrap: wrap;
-    margin: 5px;
+    margin: 4px;
     flex-direction: row;
     justify-content: left;
+    background-color: #f5deb3;
 }
 
 
 .flex-cont>div {
     padding: 2px 5px;
-    font: 1.25;
+    font: 1.5;
 }
 
 
