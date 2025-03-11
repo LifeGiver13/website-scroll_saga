@@ -1,7 +1,21 @@
 from flask import Flask, render_template
-
+import mysql.connector
 
 app = Flask(__name__)
+
+app.config["UPLOAD_FOLDER"] = "static/uploaded_cover_page"
+
+
+conn = mysql.connector.connect(
+
+    host="localhost",
+    user="life_giver",
+    password="lifegiver13",
+    database="scroll_saga"
+
+)
+
+cursor = conn.cursor(dictionary=True)
 
 
 @app.route("/login")
@@ -24,9 +38,15 @@ def panel():
     return render_template("admin_pannel.html", page_title="About Us")
 
 
-@app.route('/landing_page')
-def style():
-    return render_template("index.html", page_title="Welcome to Scroll Saga")
+@app.route("/landing_page")
+def novel_list():
+    cursor.execute(
+        "SELECT novel_id, novel_title,  author, genre,description, cover_image FROM novel_listings")
+
+    novels = cursor.fetchall()
+    print(novels)
+    conn.commit()
+    return render_template("index.html", novels=novels)
 
 
 @app.route("/about")

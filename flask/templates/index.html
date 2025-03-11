@@ -1,138 +1,73 @@
 {%extends "default_page.html" %}
 {%block content%}
 <main class=" col-sm-12 col-xs-12 main main-expand-lg bg-body-tertiary">
+    <div class="row">
 
+        <nav class="col-sm-12 col-xs-12 navbar navbar-expand-lg bg-body-tertiary" style="background-color: #f5deb3;">
+            <ul class="container-fluid">
+                <li class="list-inline-item"><a class="navbar-link" href=""></a></li>
+                <li class="list-inline-item"><a class="navbar-link" href=""></a></li>
+                <li class="list-inline-item"><a class="navbar-link" href=""></a></li>
+
+            </ul>
+        </nav>
+        <!--         
+        <div class="dropdown">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
+                aria-expanded="false" data-bs-auto-close="outside">
+                Sign in
+            </button>
+            <form class="dropdown-menu p-4">
+                <div class="mb-3">
+                    <label class="form-label" for="dropdowntext2">
+                        Username
+                    </label>
+                    <input type="text" class="form-control" placeholder="@username" id="dropdownusername2">
+
+
+                </div>
+                <div class="mb-3">
+                    <label for="exampleDropdownFormEmail2" class="form-label">Email address</label>
+                    <input type="email" class="form-control" id="exampleDropdownFormEmail2"
+                        placeholder="email@example.com">
+                </div>
+                <div class="mb-3">
+                    <label for="exampleDropdownFormPassword2" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="exampleDropdownFormPassword2"
+                        placeholder="Password">
+                </div>
+
+
+                <button type="submit" class="btn btn-primary">Sign in</button>
+            </form> -->
+    </div>
     <!-- <a href="#" style="float: right;" class="btn btn-secondary">Login</a></button> -->
     <h1 class="text-center"> Ongoing</h1>
 
     <div class="row">
         <div class="col-sm-12 col-xs-12">
+            {% if novels %}
             <div class="flex-cont">
+
+
+                {% for novel in novels %}
                 <div id="myDIV">
-                    <img src="static/images/sAga_scroll.webp" alt="BnExor">
-                    <p class="catchy">
-                        Name:The Bone Exorcist</p>
-                    <p class="catchy">
-                        Novel Type: Shonen</p>
+                    <img src="{{ novel['cover_image'] }}" alt="Book Cover">
+                    <h2 class="text-center">{{ novel["novel_title"] }}</h2>
+                    <p>Novel Genre: {{ novel["genre"] }}</p>
+                    <p>Description: {{ novel["description"] }}</p>
+                    <p>Author: {{ novel["author"] }}</p>
+                    <p class="text-center"><a href="#" class="btn btn-primary">Read Now!</a></p>
 
-                    <p class="catchy">
-                        Theme: Super-natural, Mystry, Drama, Funny and Revenge.
-                    </p>
-                    <p> <a href="#" style="float: right;" class="btn btn-primary">Read Now!</a></button>
-                    </p>
+
+
                 </div>
-                <div id="myDIV">
-                    <img src="static/images/saga_scroll.png" alt="TWOTE">
-                    <p class="catchy">
-                        Name:The War of the empires</p>
-                    <p class="catchy">
-                        Novel Type: Shonen</p>
-
-                    <p class="catchy">
-                        Theme: War , Adventure, Super-natural, Romance.
-                    </p>
-                    <p> <a href="#" style="float: right;" class="btn btn-primary">Read Now!</a></button>
-
-                    </p>
-                </div>
-                <div id="myDIV">
-                    <img src="images/sword_saint.jpg" alt="TWOTE">
-                    <p class="catchy">
-                        Name:The War of the empires</p>
-                    <p class="catchy">
-                        Novel Type: Shonen</p>
-
-                    <p class="catchy">
-                        Theme: War , Adventure, Super-natural, Romance.
-                    </p>
-                    <p> <a href="#" style="float: right;" class="btn btn-primary">Read Now!</a></button>
-
-                    </p>
-                </div>
-                <div class="flex-cont">
-                    <div id="myDIV">
-                        <img src="images/bone_exors.webp" alt="BnExor">
-                        <p class="catchy">
-                            Name:The Bone Exorcist</p>
-                        <p class="catchy">
-                            Novel Type: Shonen</p>
-
-                        <p class="catchy">
-                            Theme: Super-natural, Mystry, Drama, Funny and Revenge.
-                        </p>
-                        <p> <a href="#" style="float: right;" class="btn btn-primary">Read Now!</a></button>
-                        </p>
-                    </div>
-                    <div id="myDIV">
-                        <img src="images/sword_saint.jpg" alt="TWOTE">
-                        <p class="catchy">
-                            Name:The War of the empires</p>
-                        <p class="catchy">
-                            Novel Type: Shonen</p>
-
-                        <p class="catchy">
-                            Theme: War , Adventure, Super-natural, Romance.
-                        </p>
-                        <p> <a href="#" style="float: right;" class="btn btn-primary">Read Now!</a></button>
-
-                        </p>
-                    </div>
-                    <div id="myDIV" class="card ">
-                        <img src="static/images/sAga_scroll.webp" alt="BnExor">
-                        <p class="catchy">
-                            Name:The Bone Exorcist</p>
-                        <p class="catchy">
-                            Novel Type: Shonen</p>
-
-                        <p class="catchy">
-                            Theme: Super-natural, Mystry, Drama, Funny and Revenge.
-                        </p>
-                        <p> <a href="#" style="float: right;" class="btn btn-primary">Read Now!</a></button>
-                        </p>
-                    </div>
-                    <div id="myDIV" class="card ">
-                        <img src="static/images/sAga_scroll.webp" alt="BnExor">
-                        <p class="catchy">
-                            Name:The Bone Exorcist</p>
-                        <p class="catchy">
-                            Novel Type: Shonen</p>
-
-                        <p class="catchy">
-                            Theme: Super-natural, Mystry, Drama, Funny and Revenge.
-                        </p>
-                        <p> <a href="#" style="float: right;" class="btn btn-primary">Read Now!</a></button>
-                        </p>
-                    </div>
-                    <div id="myDIV">
-                        <img src="images/sword_saint.jpg" alt="TWOTE">
-                        <p class="catchy">
-                            Name:The War of the empires</p>
-                        <p class="catchy">
-                            Novel Type: Shonen</p>
-
-                        <p class="catchy">
-                            Theme: War , Adventure, Super-natural, Romance.
-                        </p>
-                        <p> <a href="#" style="float: right;" class="btn btn-primary">Read Now!</a></button>
-
-                        </p>
-                    </div>
-                    <div id="myDIV">
-                        <img src="images/sword_saint.jpg" alt="TWOTE">
-                        <p class="catchy">
-                            Name:The War of the empires</p>
-                        <p class="catchy">
-                            Novel Type: Shonen</p>
-
-                        <p class="catchy">
-                            Theme: War , Adventure, Super-natural, Romance.
-                        </p>
-                        <p> <a href="#" style="float: right;" class="btn btn-primary">Read Now!</a></button>
-
-                        </p>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <p>No novels uploaded yet.</p>
+            {% endif %}
+
         </div>
 
     </div>
