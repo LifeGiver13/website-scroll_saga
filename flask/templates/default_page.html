@@ -59,11 +59,12 @@
                     <!-- Collapsible Menu -->
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav ms-auto">
-                            <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#">About</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#">Trending</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#">Discovery</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#">Otaku News</a></li>
+                            <li class="nav-item"><a style="color:#f5deb3;" class=" nav-link active" href="#">Home</a>
+                            </li>
+                            <li class="nav-item"><a class="nav-link" href="#" style="color:#f5deb3;">About</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#" style="color:#f5deb3;">Trending</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#" style="color:#f5deb3;">Discovery</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#" style="color:#f5deb3;">Otaku News</a></li>
                             <li class="nav-item">
                                 <form class="d-flex" role="search">
                                     <input class="form-control me-2" type="search" placeholder="Search"
@@ -81,8 +82,84 @@
                                             d="M4.268 1H12a1 1 0 0 1 1 1v11.768l.223.148A.5.5 0 0 0 14 13.5V2a2 2 0 0 0-2-2H6a2 2 0 0 0-1.732 1" />
                                     </svg></a>
                             </li>
-                            <li class="nav-item"><a class="nav-link btn btn-secondary" href="#"> Login </a></button>
-                                </a></li>
+                            <li class="nav-item" style="float: inline-end;">
+                                <!-- Login Modal -->
+                                <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel"
+                                    aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form method="post" action="" enctype="multipart\data">
+                                                    <div class="mb-3">
+                                                        <label for="loginEmail" class="form-label">Email address</label>
+                                                        <input type="email" class="form-control" id="loginEmail"
+                                                            required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="loginPassword" class="form-label">Password</label>
+                                                        <input type="password" class="form-control" id="loginPassword"
+                                                            required>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Register Modal -->
+                                <div class="modal fade" id="registerModal" tabindex="-1"
+                                    aria-labelledby="registerModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="registerModalLabel">Register</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form method="post" action="" enctype="multipart\data">
+                                                    <div class="mb-3">
+                                                        <label for="registerUsername"
+                                                            class="form-label">Username</label>
+                                                        <input type="text" class="form-control" id="registerUsername"
+                                                            required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="registerEmail" class="form-label">Email
+                                                            address</label>
+                                                        <input type="email" class="form-control" id="registerEmail"
+                                                            required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="registerPassword"
+                                                            class="form-label">Password</label>
+                                                        <input type="password" class="form-control"
+                                                            id="registerPassword" required>
+                                                    </div>
+                                                    <button type="submit"
+                                                        class="btn btn-success w-100">Register</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Buttons to Open Modals -->
+                                <div class="container text-center mt-5">
+                                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal"
+                                        class="nav-item">Login</button>
+                                    <button class="btn btn-success" data-bs-toggle="modal"
+                                        data-bs-target="#registerModal" class="nav-item">Register</button>
+                                </div>
+
+                            </li>
+                            <button type="button" class="btn-close" data-bs-dismiss="" aria-label="Close"></button>
 
                         </ul>
 
@@ -100,7 +177,43 @@
                         <li class="nav-item"><a href="" class="nav nav-link">Our Policies |</a></li>
                         <li class="nav-item"><a href="" class="nav nav-link">Report Problems |</a></li>
                         <li class="nav-item"><a href="" class="nav nav-link">Trending</a></li>
-                        <a class="nav nav-link" href="#" style="float: right;" class="btn btn-primary">Login</a>
+                        <!-- Register Modal -->
+                        <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
+                            aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="registerModalLabel">Register</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form method="post" action="" enctype="multipart\data">
+
+                                            <div class="mb-3">
+                                                <label for="registerUsername" class="form-label">Username</label>
+                                                <input type="text" class="form-control" id="registerUsername" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="registerEmail" class="form-label">Email
+                                                    address</label>
+                                                <input type="email" class="form-control" id="registerEmail" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="registerPassword" class="form-label">Password</label>
+                                                <input type="password" class="form-control" id="registerPassword"
+                                                    required>
+                                            </div>
+                                            <button type="submit" class="btn btn-success w-100">Register</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="container text-center mt-5">
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#registerModal"
+                                class="nav-item">Register</button>
+                        </div>
                     </ul>
                 </div>
             </footer>

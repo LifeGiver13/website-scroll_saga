@@ -1,4 +1,5 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+import pymysql
 import mysql.connector
 
 app = Flask(__name__)
@@ -35,7 +36,12 @@ def profile():
 
 @app.route("/admin_panel")
 def panel():
-    return render_template("admin_pannel.html", page_title="About Us")
+    cursor.execute(
+        "SELECT novel_id, novel_title,  author, genre,description, cover_image FROM novel_listings")
+
+    novels = cursor.fetchall()
+    conn.commit()
+    return render_template("admin_dashboard.html", novels=novels, row_count=cursor.rowcount)
 
 
 @app.route("/landing_page")
@@ -44,7 +50,6 @@ def novel_list():
         "SELECT novel_id, novel_title,  author, genre,description, cover_image FROM novel_listings")
 
     novels = cursor.fetchall()
-    print(novels)
     conn.commit()
     return render_template("index.html", novels=novels)
 

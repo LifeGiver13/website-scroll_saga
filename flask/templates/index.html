@@ -11,41 +11,13 @@
 
             </ul>
         </nav>
-        <!--         
-        <div class="dropdown">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
-                aria-expanded="false" data-bs-auto-close="outside">
-                Sign in
-            </button>
-            <form class="dropdown-menu p-4">
-                <div class="mb-3">
-                    <label class="form-label" for="dropdowntext2">
-                        Username
-                    </label>
-                    <input type="text" class="form-control" placeholder="@username" id="dropdownusername2">
 
-
-                </div>
-                <div class="mb-3">
-                    <label for="exampleDropdownFormEmail2" class="form-label">Email address</label>
-                    <input type="email" class="form-control" id="exampleDropdownFormEmail2"
-                        placeholder="email@example.com">
-                </div>
-                <div class="mb-3">
-                    <label for="exampleDropdownFormPassword2" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="exampleDropdownFormPassword2"
-                        placeholder="Password">
-                </div>
-
-
-                <button type="submit" class="btn btn-primary">Sign in</button>
-            </form> -->
     </div>
     <!-- <a href="#" style="float: right;" class="btn btn-secondary">Login</a></button> -->
     <h1 class="text-center"> Ongoing</h1>
 
     <div class="row">
-        <div class="col-sm-12 col-xs-12">
+        <div>
             {% if novels %}
             <div class="flex-cont">
 
@@ -53,9 +25,9 @@
                 {% for novel in novels %}
                 <div id="myDIV">
                     <img src="{{ novel['cover_image'] }}" alt="Book Cover">
-                    <h2 class="text-center">{{ novel["novel_title"] }}</h2>
+                    <h4 class="text-center">{{ novel["novel_title"] }}</h4>
                     <p>Novel Genre: {{ novel["genre"] }}</p>
-                    <p>Description: {{ novel["description"] }}</p>
+                    <!-- <p>Description: {{ novel["description"] }}</p> -->
                     <p>Author: {{ novel["author"] }}</p>
                     <p class="text-center"><a href="#" class="btn btn-primary">Read Now!</a></p>
 
