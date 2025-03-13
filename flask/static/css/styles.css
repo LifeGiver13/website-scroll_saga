@@ -58,7 +58,7 @@ h3 {
 
 
 .flex-cont>div {
-    padding: 2px 5px;
+    padding: 5px;
     font: 1.5;
 }
 
@@ -68,8 +68,17 @@ img {
     border: 2px solid #8b5a2b;
     margin: 70px;
     width: 50%;
-    height: auto;
+    height: 35%;
     margin: 25%;
+}
+
+.nav-item a:hover {
+    background-color: #1e1e2e;
+    border-radius: 5px;
+}
+
+.nav-item a {
+    font-weight: 500;
 }
 
 body {
@@ -82,6 +91,7 @@ body {
     background: #1e1e2e;
     padding: 20px;
     color: #fff;
+    height: auto;
 }
 
 .sidebar a {
@@ -100,6 +110,7 @@ body {
     flex: 1;
     padding: 20px;
     background: #f5deb3;
+    height: auto;
 }
 
 .card {
