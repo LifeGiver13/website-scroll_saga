@@ -1,17 +1,17 @@
 #wrapper {
-    margin: 0px 0px;
-    padding: 0px;
-    width: 100%;
+    background-color: whitesmoke;
+    padding: 0.5em;
+
 }
 
 nav {
-    height: 10vh;
-    background-color: red;
+    height: auto;
+    background-color: #8b5a2b;
 }
 
 #footer {
     height: 10vh;
-    background-color: red;
+    background-color: #8b5a2b;
 }
 
 main {
@@ -25,6 +25,62 @@ li>a {
     color: black;
 }
 
+
+#myDIV {
+    width: 27vw;
+    height: auto;
+    background-color: #1e1e2e;
+    margin: 11px 30px;
+    padding: 10px;
+    border-radius: 30px;
+    display: block;
+
+}
+
+#myDIV>p {
+    color: #f5deb3;
+}
+
+h4,
+h3 {
+    color: #f5deb3;
+}
+
+
+.flex-cont {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 4px;
+    flex-direction: row;
+    justify-content: left;
+    background-color: #f5deb3;
+}
+
+
+.flex-cont>div {
+    padding: 5px;
+    font: 1.5;
+}
+
+
+img {
+    border-radius: 15%;
+    border: 2px solid #8b5a2b;
+    margin: 70px;
+    width: 50%;
+    height: 35%;
+    margin: 25%;
+}
+
+.nav-item a:hover {
+    background-color: #1e1e2e;
+    border-radius: 5px;
+}
+
+.nav-item a {
+    font-weight: 500;
+}
+
 body {
     display: flex;
     height: 100vh;
@@ -35,33 +91,28 @@ body {
     background: #1e1e2e;
     padding: 20px;
     color: #fff;
+    height: auto;
 }
-
 
 .sidebar a {
     color: #fff;
     display: block;
     padding: 10px;
     text-decoration: none;
+    height: 50in;
 }
-
-
 
 .sidebar a:hover {
     background: #8b5a2b;
     border-radius: 5px;
 }
 
-
 .content {
     flex: 1;
     padding: 20px;
     background: #f5deb3;
+    height: 50in;
 }
-
-
-
-
 
 .card {
     background: #fff;
@@ -70,43 +121,37 @@ body {
     text-align: center;
 }
 
-#myDIV {
-    width: 27vw;
-    height: auto;
-    border: black;
-    background-color: #1e1e2e;
-    margin: 13px 30px;
+.table-container {
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
     padding: 10px;
-    border-radius: 35px;
-
-
+    text-align: left;
 }
 
-#myDIV>p {
-    color: #f5deb3;
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f9f9f9;
 }
 
-
-
-.flex-cont {
+.table-wrapper {
     display: flex;
-    flex-wrap: wrap;
-    margin: 10px;
-    flex-direction: row;
-    justify-content: left;
+    flex-direction: column;
+    height: 100%;
 }
 
-
-.flex-cont>div {
-    padding: 2px 5px;
-    font: 1.25;
+.table-responsive {
+    flex-grow: 1;
+    overflow-y: auto;
 }
 
-
-img {
-    border: 2px solid red;
-    margin: 70px;
-    width: 50%;
-    height: auto;
-    margin: 25%;
+legend {
+    color: #f5deb3;
 }

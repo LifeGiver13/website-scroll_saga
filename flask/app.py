@@ -103,6 +103,7 @@ def edit_novel(novel_id):
         novel.novel_title = request.form["novel_title"]
         novel.author = request.form["author"]
         novel.genre = request.form["genre"]
+        db.session.add(novel)
         db.session.commit()
         return redirect(url_for("panel"))
     return render_template("edit_novel_form.html", novel=novel)
