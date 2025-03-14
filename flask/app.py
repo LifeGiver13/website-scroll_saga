@@ -4,6 +4,7 @@ from datetime import datetime
 import pymysql
 import os
 import json  # Required for SQLAlchemy MySQL connection
+from werkzeug.utils import secure_filename
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -29,6 +30,7 @@ class Novel(db.Model):
     cover_image = db.Column(db.String(255), nullable=True)
     # Defaults to current date
     publish_date = db.Column(db.DateTime, default=datetime.utcnow)
+    chapters = db.Column(db.Integer, nullable=False, default=0)
 
     def to_dict(self):
         """Convert the novel object to a dictionary."""
@@ -53,7 +55,7 @@ def profile():
     return render_template("user_details.html", page_title="Profile")
 
 
-@app.route("/admin_panel")
+@app.route("/admin_panel", methods=["GET", "POST"])
 def panel():
     novels = Novel.query.all()  # Fetch all novels from the database
     novels_data = [novel.to_dict()
@@ -79,16 +81,15 @@ def add_novel():
         cover_image = request.files["cover_image"]
 
         if cover_image:
-            cover_path = os.path.join(
-                app.config["UPLOAD_FOLDER"], cover_image.filename)  # Define the file path
-            cover_image.save(cover_path)
+            filename = secure_filename(cover_image.filename)
+            cover_image.save(os.path.join(
+                app.config["UPLOAD_FOLDER"], filename))
         else:
             filename = None
 
         new_novel = Novel(novel_title=novel_title, author=author,
                           genre=genre, description=description, cover_image=filename)
         db.session.add(new_novel)
-        print(new_novel)
         db.session.commit()
         return redirect(url_for("panel"))
 

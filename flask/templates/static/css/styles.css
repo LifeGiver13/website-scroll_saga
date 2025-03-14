@@ -25,70 +25,51 @@ li>a {
     color: black;
 }
 
-/* * {
-    padding: 2px;
-    margin: 0px;
-
-}
-
-
-
-
-
-
-footer {
-    background-color: red;
-    height: 2+ 335vh;
-}
-
-.logo {
-    width: 4%;
-    height: auto;
-}
-
-
-
-header h1 {
-    text-align: center;
-    font-size: 2.8em;
-}
-
-ul {
-    list-style-type: none;
-    background: red;
-    overflow: hidden;
-    padding: 10px;
-
-}
-
-li a {
-    display: block;
-    text-align: center;
-    text-decoration: none;
-    color: black;
-    padding: 10px;
-    float: left;
-
-}
-
-li a.current {
-    background: rosybrown;
-}
-
-li a:hover {
-    background: rosybrown;
-    color: white;
-}
-
-.container {
+body {
     display: flex;
-    flex-wrap: wrap;
+    height: 100vh;
 }
 
-.container>li {
-    padding: 10px 107.5;
-    font: 1.25em sans-serif;
-} */
+.sidebar {
+    width: 250px;
+    background: #1e1e2e;
+    padding: 20px;
+    color: #fff;
+}
+
+
+.sidebar a {
+    color: #fff;
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+}
+
+
+
+.sidebar a:hover {
+    background: #8b5a2b;
+    border-radius: 5px;
+}
+
+
+.content {
+    flex: 1;
+    padding: 20px;
+    background: #f5deb3;
+}
+
+
+
+
+
+.card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
 #myDIV {
     width: 27vw;
     height: auto;
