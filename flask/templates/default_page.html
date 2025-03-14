@@ -7,6 +7,7 @@
     <meta name="description" content="This is a business directory" />
     <meta name="keywords" content="Anime Story, Fotsing Life, directory" />
     <title>{{page_title}}</title>
+    <link rel="icon" type="image/webp" href="static/images/sAga_scroll.webp">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="static/css/styles.css" rel="stylesheet" type="text/css" />
 </head>
@@ -17,7 +18,7 @@
             <nav class="col-sm-12 col-xs-12 navbar navbar-expand-lg bg-body-tertiary">
                 <div class="container-fluid">
                     <!-- Brand Logo -->
-                    <a class="navbar-brand" href="#">
+                    <a class="navbar-brand" href="{{url_for('novel_list')}}">
                         <svg width="245" height="130" viewBox="0 10 400 60" xmlns="http://www.w3.org/2000/svg"
                             xmlns:xlink="http://www.w3.org/1999/xlink">
                             <!-- Background -->
@@ -59,17 +60,19 @@
                     <!-- Collapsible Menu -->
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav ms-auto">
-                            <li class="nav-item"><a style="color:#f5deb3;" class=" nav-link active" href="#">Home</a>
+                            <li class="nav-item"><a style="color:#f5deb3;" class=" nav-link active"
+                                    href="{{url_for('novel_list')}}">Home</a>
                             </li>
                             <li class="nav-item"><a class="nav-link" href="#" style="color:#f5deb3;">About</a></li>
                             <li class="nav-item"><a class="nav-link" href="#" style="color:#f5deb3;">Trending</a></li>
                             <li class="nav-item"><a class="nav-link" href="#" style="color:#f5deb3;">Discovery</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#" style="color:#f5deb3;">Otaku News</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{url_for('panel')}}"
+                                    style="color:#f5deb3;">Admin Panel</a></li>
                             <li class="nav-item">
                                 <form class="d-flex" role="search">
                                     <input class="form-control me-2" type="search" placeholder="Search"
                                         aria-label="Search">
-                                    <button class="btn btn-outline-success" type="submit">Search</button>
+                                    <button class="btn btn-outline-light" type="submit">Search</button>
                                 </form>
                             </li>
                             <li class="nav-item">
@@ -94,15 +97,21 @@
                                                     aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <form method="post" action="" enctype="multipart\data">
+                                                <form method="post" action="/about" enctype="multipart\data">
+                                                    <div class="mb-3">
+                                                        <label for="username" class="form-label">Username</label>
+                                                        <input type="text" class="form-control" name="username"
+                                                            required>
+                                                    </div>
+
                                                     <div class="mb-3">
                                                         <label for="loginEmail" class="form-label">Email address</label>
-                                                        <input type="email" class="form-control" id="loginEmail"
+                                                        <input type="email" class="form-control" name="loginEmail"
                                                             required>
                                                     </div>
                                                     <div class="mb-3">
                                                         <label for="loginPassword" class="form-label">Password</label>
-                                                        <input type="password" class="form-control" id="loginPassword"
+                                                        <input type="password" class="form-control" name="loginPassword"
                                                             required>
                                                     </div>
                                                     <button type="submit" class="btn btn-primary w-100">Login</button>
@@ -113,12 +122,12 @@
                                 </div>
 
                                 <!-- Register Modal -->
-                                <div class="modal fade" id="registerModal" tabindex="-1"
+                                <div class="modal fade" name="registerModal" tabindex="-1"
                                     aria-labelledby="registerModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="registerModalLabel">Register</h5>
+                                                <h5 class="modal-title" name="registerModalLabel">Register</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
@@ -127,7 +136,7 @@
                                                     <div class="mb-3">
                                                         <label for="registerUsername"
                                                             class="form-label">Username</label>
-                                                        <input type="text" class="form-control" id="registerUsername"
+                                                        <input type="text" class="form-control" name="registerUsername"
                                                             required>
                                                     </div>
                                                     <div class="mb-3">
@@ -140,7 +149,7 @@
                                                         <label for="registerPassword"
                                                             class="form-label">Password</label>
                                                         <input type="password" class="form-control"
-                                                            id="registerPassword" required>
+                                                            name="registerPassword" required>
                                                     </div>
                                                     <button type="submit"
                                                         class="btn btn-success w-100">Register</button>
@@ -152,14 +161,13 @@
 
                                 <!-- Buttons to Open Modals -->
                                 <div class="container text-center mt-5">
-                                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal"
+                                    <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#loginModal"
                                         class="nav-item">Login</button>
-                                    <button class="btn btn-success" data-bs-toggle="modal"
-                                        data-bs-target="#registerModal" class="nav-item">Register</button>
+                                    <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#registerModal"
+                                        class="nav-item">Register</button>
                                 </div>
 
                             </li>
-                            <button type="button" class="btn-close" data-bs-dismiss="" aria-label="Close"></button>
 
                         </ul>
 
@@ -177,41 +185,9 @@
                         <li class="nav-item"><a href="" class="nav nav-link">Our Policies |</a></li>
                         <li class="nav-item"><a href="" class="nav nav-link">Report Problems |</a></li>
                         <li class="nav-item"><a href="" class="nav nav-link">Trending</a></li>
-                        <!-- Register Modal -->
-                        <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
-                            aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="registerModalLabel">Register</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form method="post" action="" enctype="multipart\data">
 
-                                            <div class="mb-3">
-                                                <label for="registerUsername" class="form-label">Username</label>
-                                                <input type="text" class="form-control" id="registerUsername" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="registerEmail" class="form-label">Email
-                                                    address</label>
-                                                <input type="email" class="form-control" id="registerEmail" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="registerPassword" class="form-label">Password</label>
-                                                <input type="password" class="form-control" id="registerPassword"
-                                                    required>
-                                            </div>
-                                            <button type="submit" class="btn btn-success w-100">Register</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <div class="container text-center mt-5">
-                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#registerModal"
+                            <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#registerModal"
                                 class="nav-item">Register</button>
                         </div>
                     </ul>

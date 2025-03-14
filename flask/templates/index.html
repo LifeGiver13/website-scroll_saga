@@ -24,13 +24,14 @@
 
                 {% for novel in novels %}
                 <div id="myDIV">
-                    <img src="{{ novel['cover_image'] }}" alt="Book Cover">
+                    <img src="{{ url_for('static', filename='images/' + novel['cover_image']) }}" alt="Book Cover">
                     <h4 class="text-center">{{ novel["novel_title"] }}</h4>
                     <p>Novel Genre: {{ novel["genre"] }}</p>
                     <!-- <p>Description: {{ novel["description"] }}</p> -->
                     <p>Author: {{ novel["author"] }}</p>
-                    <p class="text-center"><a href="#" class="btn btn-primary">Read Now!</a></p>
+                    <p>Published Date: {{date}} </p>
 
+                    <p class="text-center"><a href="#" class="btn btn-primary">Read Now!</a></p>
 
 
                 </div>

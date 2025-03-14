@@ -1,7 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-import pymysql  # Required for SQLAlchemy MySQL connection
+import pymysql
+import os
+import json  # Required for SQLAlchemy MySQL connection
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -40,8 +42,6 @@ class Novel(db.Model):
             "publish_date": self.publish_date.strftime('%Y-%m-%d') if self.publish_date else None
         }
 
-# Routes
-
 
 @app.route("/register")
 def register():
@@ -67,6 +67,52 @@ def novel_list():
     novels_data = [novel.to_dict()
                    for novel in novels]  # Convert to dictionaries
     return render_template("index.html", novels=novels_data, date=datetime.utcnow().strftime('%Y-%m-%d'))
+
+
+@app.route("/add_novel", methods=["GET", "POST"])
+def add_novel():
+    if request.method == "POST":
+        novel_title = request.form["novel_title"]
+        author = request.form["author"]
+        genre = request.form["genre"]
+        description = request.form["description"]
+        cover_image = request.files["cover_image"]
+
+        if cover_image:
+            cover_path = os.path.join(
+                app.config["UPLOAD_FOLDER"], cover_image.filename)  # Define the file path
+            cover_image.save(cover_path)
+        else:
+            filename = None
+
+        new_novel = Novel(novel_title=novel_title, author=author,
+                          genre=genre, description=description, cover_image=filename)
+        db.session.add(new_novel)
+        print(new_novel)
+        db.session.commit()
+        return redirect(url_for("panel"))
+
+    return render_template("add_novel.html")
+
+
+@app.route("/edit_novel/<int:novel_id>", methods=["GET", "POST"])
+def edit_novel(novel_id):
+    novel = Novel.query.get(novel_id)
+    if request.method == "POST":
+        novel.novel_title = request.form["novel_title"]
+        novel.author = request.form["author"]
+        novel.genre = request.form["genre"]
+        db.session.commit()
+        return redirect(url_for("panel"))
+    return render_template("edit_novel_form.html", novel=novel)
+
+
+@app.route("/delete_novel/<int:novel_id>", methods=["POST"])
+def delete_novel(novel_id):
+    novel = Novel.query.get_or_404(novel_id)
+    db.session.delete(novel)
+    db.session.commit()
+    return redirect(url_for("panel"))
 
 
 @app.route("/about")
