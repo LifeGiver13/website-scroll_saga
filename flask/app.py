@@ -98,14 +98,15 @@ def add_novel():
 
 @app.route("/edit_novel/<int:novel_id>", methods=["GET", "POST"])
 def edit_novel(novel_id):
-    novel = Novel.query.get(novel_id)
+    novel = Novel.query.get_or_404(novel_id)
     if request.method == "POST":
         novel.novel_title = request.form["novel_title"]
         novel.author = request.form["author"]
         novel.genre = request.form["genre"]
-        db.session.add(novel)
+
         db.session.commit()
         return redirect(url_for("panel"))
+
     return render_template("edit_novel_form.html", novel=novel)
 
 
@@ -115,6 +116,13 @@ def delete_novel(novel_id):
     db.session.delete(novel)
     db.session.commit()
     return redirect(url_for("panel"))
+
+
+@app.route("/novel/<int:novel_id>/<string:novel_url>")
+def novel_details_page(novel_id, novel_url):
+    novel_index = novel_id - 1
+    novels = novels[novel_index]
+    return render_template("details.html", novels=novels)
 
 
 @app.route("/about")
