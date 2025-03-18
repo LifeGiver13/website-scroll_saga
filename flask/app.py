@@ -5,6 +5,7 @@ import pymysql
 import os
 import json  # Required for SQLAlchemy MySQL connection
 from werkzeug.utils import secure_filename
+import requests
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -44,6 +45,31 @@ class Novel(db.Model):
             "publish_date": self.publish_date.strftime('%Y-%m-%d') if self.publish_date else None
         }
 
+# Define Users model
+
+
+class Users(db.Model):
+    __tablename__ = "users"
+    user_id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(255), nullable=False)
+    email_address = db.Column(db.String(255), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(255), nullable=False)
+    profile_photo = db.Column(db.Text, nullable=True)
+    user_bio = db.Column(db.String(255), nullable=False, default=0)
+
+    def to_dict(self):
+        """Convert the user object to a dictionary."""
+        return {
+            "user_id": self.user_id,
+            "username": self.username,
+            "email_address": self.email_address,
+            "password": self.password,
+            "role": self.role,
+            "profile_photo": self.profile_photo,
+            "user_bio": self.user_bio if self.user_bio else None
+        }
+
 
 @app.route("/register")
 def register():
@@ -79,35 +105,33 @@ def add_novel():
         genre = request.form["genre"]
         description = request.form["description"]
         cover_image = request.files["cover_image"]
-
         if cover_image:
             filename = secure_filename(cover_image.filename)
             cover_image.save(os.path.join(
                 app.config["UPLOAD_FOLDER"], filename))
         else:
             filename = None
-
         new_novel = Novel(novel_title=novel_title, author=author,
                           genre=genre, description=description, cover_image=filename)
         db.session.add(new_novel)
         db.session.commit()
         return redirect(url_for("panel"))
-
     return render_template("add_novel.html")
 
 
-@app.route("/edit_novel/<int:novel_id>", methods=["GET", "POST"])
-def edit_novel(novel_id):
-    novel = Novel.query.get_or_404(novel_id)
-    if request.method == "POST":
-        novel.novel_title = request.form["novel_title"]
-        novel.author = request.form["author"]
-        novel.genre = request.form["genre"]
+@app.route("/")
+def home():
+    # Replace with the actual API endpoint
+    api_url = "https://mangahook-api.vercel.app/?utm_source=chatgpt.com"
+    response = requests.get(api_url)
 
-        db.session.commit()
-        return redirect(url_for("panel"))
+    if response.status_code == 200:
+        novels = response.json()  # Convert response to Python dictionary
+    else:
+        novels = []  # Empty list if API request fails
 
-    return render_template("edit_novel_form.html", novel=novel)
+    # Pass data to Jinja template
+    return render_template("index.html", novels=novels)
 
 
 @app.route("/delete_novel/<int:novel_id>", methods=["POST"])
@@ -116,6 +140,25 @@ def delete_novel(novel_id):
     db.session.delete(novel)
     db.session.commit()
     return redirect(url_for("panel"))
+
+
+@app.route("/edit_novel/<int:novel_id>", methods=["GET", "POST"])
+def edit_novel(novel_id):
+    novel = Novel.query.get_or_404(novel_id)
+
+    if request.method == "POST":
+        novel.novel_title = request.form.get("novel_title")
+        novel.author = request.form.get("author")
+        novel.genre = request.form.get("genre")
+        novel.description = request.form.get("description")
+        novel.publish_date = request.form.get("publish_date")
+
+        # Save changes
+        db.session.commit()
+
+        return redirect(url_for("panel"))
+
+    return render_template("edit_novel_form.html", novel=novel)
 
 
 @app.route("/novel/<int:novel_id>/<string:novel_url>")
