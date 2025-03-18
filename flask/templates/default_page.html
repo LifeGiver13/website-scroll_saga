@@ -92,21 +92,34 @@
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                                                <h5 class="modal-title" id="loginModalLabel">
+                                                    {% if session['username'] %}
+                                                    Welcome, {{ session['username'] }}!
+                                                    {% else %}
+                                                    Login
+                                                    {% endif %}
+                                                </h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <form method="post" action="/about" enctype="multipart\data">
+                                                {% with messages = get_flashed_messages(with_categories=true) %}
+                                                {% if messages %}
+                                                {% for category, message in messages %}
+                                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                                                {% endfor %}
+                                                {% endif %}
+                                                {% endwith %}
+
+                                                {% if session['username'] %}
+                                                <p class="text-center">You are already logged in.</p>
+                                                <a href="{{ url_for('logout') }}"
+                                                    class="btn btn-danger w-100">Logout</a>
+                                                {% else %}
+                                                <form method="post" action="{{ url_for('login') }}">
                                                     <div class="mb-3">
                                                         <label for="username" class="form-label">Username</label>
                                                         <input type="text" class="form-control" name="username"
-                                                            required>
-                                                    </div>
-
-                                                    <div class="mb-3">
-                                                        <label for="loginEmail" class="form-label">Email address</label>
-                                                        <input type="email" class="form-control" name="loginEmail"
                                                             required>
                                                     </div>
                                                     <div class="mb-3">
@@ -116,41 +129,60 @@
                                                     </div>
                                                     <button type="submit" class="btn btn-primary w-100">Login</button>
                                                 </form>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Register Modal -->
-                                <div class="modal fade" name="registerModal" tabindex="-1"
+                                <div class="modal fade" id="registerModal" tabindex="-1"
                                     aria-labelledby="registerModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" name="registerModalLabel">Register</h5>
+                                                <h5 class="modal-title" id="registerModalLabel">Register</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                     aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <form method="post" action="" enctype="multipart\data">
+                                                {% with messages = get_flashed_messages(with_categories=true) %}
+                                                {% if messages %}
+                                                {% for category, message in messages %}
+                                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                                                {% endfor %}
+                                                {% endif %}
+                                                {% endwith %}
+
+                                                <form method="post" action="{{ url_for('register') }}">
                                                     <div class="mb-3">
                                                         <label for="registerUsername"
                                                             class="form-label">Username</label>
                                                         <input type="text" class="form-control" name="registerUsername"
                                                             required>
                                                     </div>
+
                                                     <div class="mb-3">
                                                         <label for="registerEmail" class="form-label">Email
-                                                            address</label>
-                                                        <input type="email" class="form-control" id="registerEmail"
+                                                            Address</label>
+                                                        <input type="email" class="form-control" name="registerEmail"
                                                             required>
                                                     </div>
+
                                                     <div class="mb-3">
                                                         <label for="registerPassword"
                                                             class="form-label">Password</label>
                                                         <input type="password" class="form-control"
                                                             name="registerPassword" required>
                                                     </div>
+
+                                                    <div class="mb-3">
+                                                        <label for="confirmPassword" class="form-label">Confirm
+                                                            Password</label>
+                                                        <input type="password" class="form-control"
+                                                            name="confirmPassword" required>
+                                                    </div>
+
                                                     <button type="submit"
                                                         class="btn btn-success w-100">Register</button>
                                                 </form>
@@ -158,6 +190,7 @@
                                         </div>
                                     </div>
                                 </div>
+
 
                                 <!-- Buttons to Open Modals -->
                                 <div class="container text-center mt-5">

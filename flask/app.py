@@ -1,14 +1,17 @@
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, url_for, redirect, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import pymysql
 import os
 import json  # Required for SQLAlchemy MySQL connection
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 
 # Initialize Flask app
 app = Flask(__name__)
+# set a secret key
+app.secret_key = "kenko182kaneju7364&*(jacee)[2]&238#"
 
 # Set the folder for uploaded cover images
 app.config["UPLOAD_FOLDER"] = "static/uploaded_cover_page"
@@ -51,29 +54,91 @@ class Novel(db.Model):
 class Users(db.Model):
     __tablename__ = "users"
     user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(255), nullable=False)
-    email_address = db.Column(db.String(255), nullable=False)
+    username = db.Column(db.String(255), nullable=False, unique=True)
+    email_address = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(255), nullable=False, default="user")
     profile_photo = db.Column(db.Text, nullable=True)
-    user_bio = db.Column(db.String(255), nullable=False, default=0)
+    user_bio = db.Column(db.String(255), nullable=True)
 
     def to_dict(self):
-        """Convert the user object to a dictionary."""
         return {
             "user_id": self.user_id,
             "username": self.username,
             "email_address": self.email_address,
-            "password": self.password,
             "role": self.role,
             "profile_photo": self.profile_photo,
-            "user_bio": self.user_bio if self.user_bio else None
+            "user_bio": self.user_bio
         }
 
+# Route to handle login
 
-@app.route("/register")
+
+@app.route("/login", methods=["POST", "GET"])
+def login():
+    username = request.form.get("username")
+    password = request.form.get("loginPassword")
+
+    user = Users.query.filter_by(username=username).first()
+
+    if user and check_password_hash(user.password, password):
+        session["user_id"] = user.user_id
+        session["username"] = user.username
+        flash(f"Welcome, {user.username}!", "success")
+        return redirect(url_for("novel_list"))
+    else:
+        flash("Invalid username or password", "danger")
+        return redirect(url_for("novel_list"))  # Reload the homepage
+
+# Route to handle registration
+
+
+@app.route("/register", methods=["POST"])
 def register():
-    return render_template("signUp.html", page_title="Sign Up")
+    username = request.form.get("registerUsername")
+    email = request.form.get("registerEmail")
+    password = request.form.get("registerPassword")
+    confirm_password = request.form.get("confirmPassword")
+
+    if password != confirm_password:
+        flash("Passwords do not match. Please try again.", "danger")
+        return redirect(url_for("novel_list"))
+
+    existing_user = Users.query.filter_by(email_address=email).first()
+    if existing_user:
+        flash("Email already exists. Please log in.", "warning")
+        return redirect(url_for("novel_list"))
+
+    hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+
+    # Assign a default profile picture
+    default_profile_photo = "default.png"
+
+    new_user = Users(
+        username=username,
+        email_address=email,
+        password=hashed_password,
+        role="user",
+        profile_photo=default_profile_photo,  # Set default image
+        user_bio="None"  # You can set a default bio or leave it NULL
+    )
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    flash("Registration successful! Please log in.", "success")
+    return redirect(url_for("novel_list"))
+
+# Logout Route
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("You have been logged out.", "info")
+    return redirect(url_for("novel_list"))
+
+# Home route (for listing novels)
 
 
 @app.route("/profile")
