@@ -48,33 +48,31 @@ class Novel(db.Model):
             "publish_date": self.publish_date.strftime('%Y-%m-%d') if self.publish_date else None
         }
 
-# Define Users model
-
 
 class Users(db.Model):
     __tablename__ = "users"
     user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(255), nullable=False, unique=True)
-    email_address = db.Column(db.String(255), nullable=False, unique=True)
+    username = db.Column(db.String(255), nullable=False)
+    email_address = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(255), nullable=False, default="user")
+    role = db.Column(db.String(255), nullable=False)
     profile_photo = db.Column(db.Text, nullable=True)
-    user_bio = db.Column(db.String(255), nullable=True)
+    user_bio = db.Column(db.String(255), nullable=False, default=0)
 
     def to_dict(self):
+        """Convert the user object to a dictionary."""
         return {
             "user_id": self.user_id,
             "username": self.username,
             "email_address": self.email_address,
+            "password": self.password,
             "role": self.role,
             "profile_photo": self.profile_photo,
-            "user_bio": self.user_bio
+            "user_bio": self.user_bio if self.user_bio else None
         }
 
-# Route to handle login
 
-
-@app.route("/login", methods=["POST", "GET"])
+@app.route("/login", methods=["POST"])
 def login():
     username = request.form.get("username")
     password = request.form.get("loginPassword")
@@ -90,8 +88,6 @@ def login():
         flash("Invalid username or password", "danger")
         return redirect(url_for("novel_list"))  # Reload the homepage
 
-# Route to handle registration
-
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -100,35 +96,46 @@ def register():
     password = request.form.get("registerPassword")
     confirm_password = request.form.get("confirmPassword")
 
+    # Check if passwords match
     if password != confirm_password:
         flash("Passwords do not match. Please try again.", "danger")
         return redirect(url_for("novel_list"))
 
-    existing_user = Users.query.filter_by(email_address=email).first()
-    if existing_user:
+    # Check if the email already exists
+    existing_email = Users.query.filter_by(email_address=email).first()
+    if existing_email:
         flash("Email already exists. Please log in.", "warning")
         return redirect(url_for("novel_list"))
 
+    # Check if the username already exists
+    existing_username = Users.query.filter_by(username=username).first()
+    if existing_username:
+        flash("Username already taken. Please choose another one.", "warning")
+        return redirect(url_for("novel_list"))
+
+    # Hash the password
     hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
 
     # Assign a default profile picture
     default_profile_photo = "default.png"
 
+    # Create a new user
     new_user = Users(
         username=username,
         email_address=email,
         password=hashed_password,
         role="user",
         profile_photo=default_profile_photo,  # Set default image
-        user_bio="None"  # You can set a default bio or leave it NULL
+        # Change from "None" (string) to actual None (NULL in database)
+        user_bio=None
     )
 
+    # Save to database
     db.session.add(new_user)
     db.session.commit()
 
     flash("Registration successful! Please log in.", "success")
     return redirect(url_for("novel_list"))
-
 # Logout Route
 
 
