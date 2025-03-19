@@ -21,20 +21,17 @@ main {
 }
 
 
-li>a {
-    color: black;
-}
-
-
 #myDIV {
     width: 27vw;
-    height: auto;
+    height: 100vh;
+    /* Match viewport height */
     background-color: #1e1e2e;
     margin: 11px 30px;
     padding: 10px;
     border-radius: 30px;
     display: block;
-
+    overflow-y: auto;
+    /* Scroll if necessary */
 }
 
 #myDIV>p {
@@ -83,15 +80,16 @@ img {
 
 body {
     display: flex;
-    height: 100vh;
+    height: 10vh;
 }
 
 .sidebar {
-    width: 250px;
+
     background: #1e1e2e;
     padding: 20px;
     color: #fff;
-    height: auto;
+    height: 100vh;
+
 }
 
 .sidebar a {
@@ -110,7 +108,11 @@ body {
     flex: 1;
     padding: 20px;
     background: #f5deb3;
-    height: auto;
+    height: 100vh;
+    margin-left: 0px;
+    /* Push content right to avoid overlap with sidebar */
+    overflow-y: auto;
+    /* Enables scrolling if content is too long */
 }
 
 .card {
@@ -118,4 +120,66 @@ body {
     padding: 20px;
     border-radius: 10px;
     text-align: center;
+    flex: 1;
+    /* Ensures equal card sizes */
+    min-width: 200px;
+    /* Prevents shrinking too much */
+}
+
+.table-container {
+    max-height: 60vh;
+    /* Prevents table from pushing everything down */
+    overflow-y: auto;
+    /* Enables vertical scrolling */
+    border: 2px solid #8b5a2b;
+    /* Adds a clean border */
+    padding: 10px;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 10px;
+    text-align: left;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f9f9f9;
+}
+
+.table-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.table-responsive {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+legend {
+    color: #f5deb3;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+
+    .content {
+        margin-left: 0;
+        padding: 10px;
+    }
+
+    .table-container {
+        max-height: 400px;
+        /* Ensures table doesn’t take up the entire screen */
+    }
 }

@@ -20,21 +20,21 @@ main {
 
 }
 
-
-li>a {
-    color: black;
+li {
+    color: #f5deb3;
 }
-
 
 #myDIV {
     width: 27vw;
-    height: 500vh;
+    height: 100vh;
+    /* Match viewport height */
     background-color: #1e1e2e;
     margin: 11px 30px;
     padding: 10px;
     border-radius: 30px;
     display: block;
-
+    overflow-y: auto;
+    /* Scroll if necessary */
 }
 
 #myDIV>p {
@@ -91,7 +91,14 @@ body {
     background: #1e1e2e;
     padding: 20px;
     color: #fff;
-    height: auto;
+    height: 100vh;
+    /* Full viewport height */
+    position: fixed;
+    /* Keep it in place */
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    /* Allows scrolling if needed */
 }
 
 .sidebar a {
@@ -111,7 +118,19 @@ body {
     flex: 1;
     padding: 20px;
     background: #f5deb3;
-    height: 50in;
+    height: 100vh;
+    margin-left: 270px;
+    /* Push content right to avoid overlap with sidebar */
+    overflow-y: auto;
+    /* Enables scrolling if content is too long */
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    /* Ensures cards stay aligned */
+    gap: 15px;
 }
 
 .card {
@@ -119,11 +138,20 @@ body {
     padding: 20px;
     border-radius: 10px;
     text-align: center;
+    flex: 1;
+    /* Ensures equal card sizes */
+    min-width: 200px;
+    /* Prevents shrinking too much */
 }
 
 .table-container {
-    max-height: 100%;
+    max-height: 60vh;
+    /* Prevents table from pushing everything down */
     overflow-y: auto;
+    /* Enables vertical scrolling */
+    border: 1px solid #8b5a2b;
+    /* Adds a clean border */
+    padding: 10px;
 }
 
 .table {
@@ -154,4 +182,26 @@ body {
 
 legend {
     color: #f5deb3;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+
+    .content {
+        margin-left: 0;
+        padding: 10px;
+    }
+
+    .row {
+        flex-direction: column;
+    }
+
+    .table-container {
+        max-height: 400px;
+        /* Ensures table doesn’t take up the entire screen */
+    }
 }

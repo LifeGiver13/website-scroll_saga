@@ -191,19 +191,19 @@ def add_novel():
     return render_template("add_novel.html")
 
 
-@app.route("/")
-def home():
-    # Replace with the actual API endpoint
-    api_url = "https://mangahook-api.vercel.app/?utm_source=chatgpt.com"
-    response = requests.get(api_url)
+# @app.route("/")
+# def home():
+#     # Replace with the actual API endpoint
+#     api_url = "https://mangahook-api.vercel.app/?utm_source=chatgpt.com"
+#     response = requests.get(api_url)
 
-    if response.status_code == 200:
-        novels = response.json()  # Convert response to Python dictionary
-    else:
-        novels = []  # Empty list if API request fails
+#     if response.status_code == 200:
+#         novels = response.json()  # Convert response to Python dictionary
+#     else:
+#         novels = []  # Empty list if API request fails
 
-    # Pass data to Jinja template
-    return render_template("index.html", novels=novels)
+#     # Pass data to Jinja template
+#     return render_template("index.html", novels=novels)
 
 
 @app.route("/delete_novel/<int:novel_id>", methods=["POST"])
@@ -233,11 +233,14 @@ def edit_novel(novel_id):
     return render_template("edit_novel_form.html", novel=novel)
 
 
-@app.route("/novel/<int:novel_id>/<string:novel_url>")
-def novel_details_page(novel_id, novel_url):
-    novel_index = novel_id - 1
-    novels = novels[novel_index]
-    return render_template("details.html", novels=novels)
+@app.route("/novel/<int:novel_id>/<string:novel_title>")
+def novel_details_page(novel_id, novel_title):
+    # Fetch novel by ID from the database
+    novel = Novel.query.get_or_404(novel_id)
+
+    if novel:
+        return render_template("details.html", novel=novel)
+    return "Novel not found", 404  # Handle case where novel doesn't exist
 
 
 @app.route("/about")

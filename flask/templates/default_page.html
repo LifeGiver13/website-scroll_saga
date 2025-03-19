@@ -207,17 +207,19 @@
                     </div>
                 </div>
             </nav>
-            <main>
-                {% block content %}
 
-                {% endblock %}
-            </main>
+            {% block content %}
+            <main></main>
+            {% endblock %}
+
             <footer id="footer" class="row">
                 <div class="col-sm-12 col-xs-12 navbar navbar-expand-lg bg-body-tertiary">
                     <ul class="container-fluid" style="list-style-type: none;">
-                        <li class="nav-item"><a href="" class="nav nav-link">Our Policies |</a></li>
-                        <li class="nav-item"><a href="" class="nav nav-link">Report Problems |</a></li>
-                        <li class="nav-item"><a href="" class="nav nav-link">Trending</a></li>
+                        <li class="nav-item"><a href="" class="nav nav-link" style="color: #f5deb3;">Our Policies |</a>
+                        </li>
+                        <li class="nav-item"><a href="" class="nav nav-link" style="color: #f5deb3;">Report Problems
+                                |</a></li>
+                        <li class="nav-item"><a href="" class="nav nav-link" style="color: #f5deb3;">Trending|</a></li>
 
                         <div class="container text-center mt-5">
                             <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#registerModal"

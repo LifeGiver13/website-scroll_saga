@@ -13,7 +13,7 @@
     <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" type="text/css">
 </head>
 
-<body style="background-color: #f5deb3;">
+<body style="background-color: #8b5a2b;">
     <div class="container mt-5">
         <h2 class="text-center">Edit Novel</h2>
         <form action="{{ url_for('edit_novel', novel_id=novel.novel_id) }}" method="POST" enctype="multipart/form-data">
@@ -46,8 +46,8 @@
                     value="{{ novel.publish_date }}" required>
             </div>
 
-            <button class="btn btn-outline-success" type="submit">Save Changes</button>
-            <a href="{{ url_for('panel') }}" class="btn btn-outline-danger">Cancel</a>
+            <button class="btn btn-primary" type="submit">Save Changes</button>
+            <a href="{{ url_for('panel') }}" class="btn btn-secondary">Cancel</a>
         </form>
     </div>
 </body>
