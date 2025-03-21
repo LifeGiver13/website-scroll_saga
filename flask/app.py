@@ -72,12 +72,13 @@ class Users(db.Model):
         }
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    username = request.form.get("username")
-    password = request.form.get("loginPassword")
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("loginPassword")
 
-    user = Users.query.filter_by(username=username).first()
+        user = Users.query.filter_by(username=username).first()
 
     if user and check_password_hash(user.password, password):
         session["user_id"] = user.user_id
