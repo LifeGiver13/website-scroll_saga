@@ -72,6 +72,32 @@ class Users(db.Model):
         }
 
 
+class Reviews(db.Model):
+    __tablename__ = "reviews"  # Ensure table name matches the database
+    review_id = db.Column(db.Integer, primary_key=True)
+    novel_id = db.Column(db.Integer, nullable=False)
+    rating = db.Column(db.Integer, nullable=False, default=0)
+    review_text = db.Column(db.String(225), nullable=False)
+    publish_time = db.Column(db.DateTime, default=datetime.utcnow)
+    chapters = db.Column(db.Integer, nullable=False, default=0)
+    username = db.Column(db.String(255), nullable=False)
+    profile_photo = db.Column(db.Text, nullable=False, default="default.png")
+
+    def to_dict(self):
+        """Convert the novel object to a dictionary."""
+        return {
+            "review_id": self.review_id,
+            "novel_id": self.novel_id,
+            "rating": self.rating,
+            "review_text": self.review_text,
+            "publish_time": self.publish_time.strftime('%Y-%m-%d'),
+            "cover_image": self.chapters,
+            "user": self.username,
+            "profile_photo": self.profile_photo,
+
+        }
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -80,14 +106,14 @@ def login():
 
         user = Users.query.filter_by(username=username).first()
 
-    if user and check_password_hash(user.password, password):
-        session["user_id"] = user.user_id
-        session["username"] = user.username
-        flash(f"Welcome, {user.username}!", "success")
-        return redirect(url_for("novel_list"))
-    else:
-        flash("Invalid username or password", "danger")
-        return redirect(url_for("novel_list"))  # Reload the homepage
+        if user and check_password_hash(user.password, password):
+            session["user_id"] = user.user_id
+            session["username"] = user.username
+            flash(f"Welcome, {user.username}!", "success")
+            return redirect(url_for("novel_list"))
+        else:
+            flash("Invalid username or password", "danger")
+    return redirect(url_for("novel_list"))  # Reload the homepage
 
 
 @app.route("/register", methods=["POST"])
@@ -234,14 +260,30 @@ def edit_novel(novel_id):
     return render_template("edit_novel_form.html", novel=novel)
 
 
-@app.route("/novel/<int:novel_id>/<string:novel_title>")
+@app.route("/novel/<int:novel_id>/<string:novel_title>", methods=["GET", "POST"])
 def novel_details_page(novel_id, novel_title):
-    # Fetch novel by ID from the database
     novel = Novel.query.get_or_404(novel_id)
+    reviews = Reviews.query.filter_by(novel_id=novel_id).all()
 
-    if novel:
-        return render_template("details.html", novel=novel)
-    return "Novel not found", 404  # Handle case where novel doesn't exist
+    if request.method == "POST":
+        if "user_id" not in session:
+            flash("You need to be logged in to post a comment.", "danger")
+            return redirect(url_for("login"))
+
+        content = request.form.get("content")
+        if content:
+            new_review = Reviews(
+                novel_id=novel_id,
+                username=session["username"],
+                review_text=content,
+                publish_time=datetime.utcnow()
+            )
+            db.session.add(new_review)
+            db.session.commit()
+            flash("Your comment has been posted!", "success")
+            return redirect(url_for("novel_details_page", novel_id=novel_id, novel_title=novel_title))
+
+    return render_template("details.html", novel=novel, reviews=reviews)
 
 
 @app.route("/about")

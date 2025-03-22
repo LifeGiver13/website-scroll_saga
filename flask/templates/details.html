@@ -1,21 +1,110 @@
-{%extends "default_page.html" %}
-{%block content%}
+{% extends "default_page.html" %}
+{% block content %}
 
-<main class=" col-sm-12 col-xs-12 main main-expand-lg bg-body-tertiary">
-    <div class="card text-black bg-secondary mb-3" style=" padding: 50px; max-width: 40rem;">
+<main class="col-sm-12 col-xs-12 main main-expand-lg bg-body-tertiary">
+    <div class="card bg-none mb-3" style="padding: 50px; max-width: 100rem;">
         <div class="card mb-3">
-            <img src="{{ url_for('static', filename='images/' + novel['cover_image']) }}" class="card-img-top"
-                alt="Book Cover">
+            <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}" class="card-img-top"
+                alt="Book Cover" style="width: 40%; margin: 25px 400px;">
             <div class="card-body">
-                <h5 class="card-title">{{novel.name}}</h5>
-                <p class="card-text">{{novel.description}}</p>
-                <p class="card-text"><small class="text-muted">{{novel.publish_date}}</small></p>
-                <p class="card-text">{{novel.chapters}}</p>
-
+                <h5 class="card-title text-center">{{ novel.novel_title }}</h5>
+                <p class="card-text">{{ novel.description }}</p>
+                <p class="card-text"><small class="text-muted">{{ novel.publish_date }}</small></p>
+                <p class="card-text">{{ novel.chapters }}</p>
             </div>
         </div>
     </div>
-    <!-- <h1>{{novel.name}}</h1>
-    <p>{{novel.description}} - {{novel.chapters}}</p> -->
+
+    <!-- Reviews Section -->
+    <div class="container">
+        <h3>Reviews & Comments</h3>
+        {% if reviews %}
+        {% for review in reviews %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <p class="card-text"><strong>{{ review.username }}</strong>: {{ review.content }}</p>
+                <p class="card-text"><small class="text-muted">{{ review.publish_time.strftime('%Y-%m-%d %H:%M')
+                        }}</small></p>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>No reviews yet. Be the first to comment!</p>
+        {% endif %}
+
+        <!-- Comment Form (Only for Logged-In Users) -->
+        {% if "username" in session %}
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Add a Comment</h5>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="content">Your Comment:</label>
+                        <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <p> <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#loginModal"
+                class="nav-item">Login</button> to add a comment </p>
+        {% endif %}
+    </div>
+
 </main>
-{%endblock%}
+
+<style>
+    #wrapper {
+        background-color: whitesmoke;
+        padding: 0.5em;
+    }
+
+    nav {
+        height: auto;
+        background-color: #8b5a2b;
+    }
+
+    #footer {
+        height: auto;
+        background-color: #8b5a2b;
+    }
+
+    main {
+        background-color: #f5deb3;
+        height: auto;
+    }
+
+    li {
+        color: black;
+    }
+
+    #myDIV>p {
+        color: #f5deb3;
+    }
+
+    h4,
+    h3 {
+        color: #f5deb3;
+    }
+
+    img {
+        height: auto;
+        width: 20%;
+    }
+
+    .nav-item a:hover {
+        background-color: #1e1e2e;
+        border-radius: 5px;
+    }
+
+    label>p {
+        color: black;
+    }
+
+    .nav-item a {
+        font-weight: 500;
+    }
+</style>
+
+{% endblock %}
