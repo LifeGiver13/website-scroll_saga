@@ -70,16 +70,20 @@ class Users(db.Model):
             "profile_photo": self.profile_photo,
             "user_bio": self.user_bio if self.user_bio else None
         }
+    # Relationship with Users table
+
+
+user = db.relationship("Users", backref="reviews")
 
 
 class Reviews(db.Model):
     __tablename__ = "reviews"  # Ensure table name matches the database
     review_id = db.Column(db.Integer, primary_key=True)
     novel_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)
     rating = db.Column(db.Integer, nullable=False, default=0)
     review_text = db.Column(db.String(225), nullable=False)
     publish_time = db.Column(db.DateTime, default=datetime.utcnow)
-    chapters = db.Column(db.Integer, nullable=False, default=0)
     username = db.Column(db.String(255), nullable=False)
     profile_photo = db.Column(db.Text, nullable=False, default="default.png")
 
@@ -91,7 +95,7 @@ class Reviews(db.Model):
             "rating": self.rating,
             "review_text": self.review_text,
             "publish_time": self.publish_time.strftime('%Y-%m-%d'),
-            "cover_image": self.chapters,
+            "chapters": self.user_id,
             "user": self.username,
             "profile_photo": self.profile_photo,
 
@@ -270,11 +274,15 @@ def novel_details_page(novel_id, novel_title):
             flash("You need to be logged in to post a comment.", "danger")
             return redirect(url_for("login"))
 
+        user = Users.query.get(session["user_id"])  # Fetch the logged-in user
         content = request.form.get("content")
-        if content:
+
+        if content and user:
             new_review = Reviews(
                 novel_id=novel_id,
-                username=session["username"],
+                user_id=user.user_id,  # Associate review with logged-in user
+                username=user.username,  # Store username
+                profile_photo=user.profile_photo,  # Store profile photo
                 review_text=content,
                 publish_time=datetime.utcnow()
             )

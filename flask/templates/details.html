@@ -2,7 +2,7 @@
 {% block content %}
 
 <main class="col-sm-12 col-xs-12 main main-expand-lg bg-body-tertiary">
-    <div class="card bg-none mb-3" style="padding: 50px; max-width: 100rem;">
+    <div class="card color mb-3" style="padding: 50px; max-width: 100rem;">
         <div class="card mb-3">
             <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}" class="card-img-top"
                 alt="Book Cover" style="width: 40%; margin: 25px 400px;">
@@ -20,12 +20,11 @@
         <h3>Reviews & Comments</h3>
         {% if reviews %}
         {% for review in reviews %}
-        <div class="card mb-3">
-            <div class="card-body">
-                <p class="card-text"><strong>{{ review.username }}</strong>: {{ review.content }}</p>
-                <p class="card-text"><small class="text-muted">{{ review.publish_time.strftime('%Y-%m-%d %H:%M')
-                        }}</small></p>
-            </div>
+        <div class="review">
+            <img src="{{ url_for('static', filename='uploaded_profile_photos/' + review.profile_photo) }}"
+                alt="User Photo" class="profile-pic">
+            <p><strong>{{ review.username }}</strong> - {{ review.publish_time }}</p>
+            <p>{{ review.review_text }}</p>
         </div>
         {% endfor %}
         {% else %}
@@ -85,7 +84,7 @@
 
     h4,
     h3 {
-        color: #f5deb3;
+        color: #8b5a2b;
     }
 
     img {
