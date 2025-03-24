@@ -41,6 +41,10 @@
                     required>{{ novel.description }}</textarea>
             </div>
             <div class="mb-3">
+                <label for="theme" class="form-label">Theme</label>
+                <textarea class="form-control" id="theme" name="theme" rows="3" required>{{ novel.theme }}</textarea>
+            </div>
+            <div class="mb-3">
                 <label for="publish_date" class="form-label">Publish Date</label>
                 <input type="date" class="form-control" id="publish_date" name="publish_date"
                     value="{{ novel.publish_date }}" required>

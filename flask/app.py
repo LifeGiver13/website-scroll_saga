@@ -32,6 +32,7 @@ class Novel(db.Model):
     genre = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     cover_image = db.Column(db.String(255), nullable=True)
+    theme = db.Column(db.String(255), nullable=True)
     # Defaults to current date
     publish_date = db.Column(db.DateTime, default=datetime.utcnow)
     chapters = db.Column(db.Integer, nullable=False, default=0)
@@ -45,6 +46,7 @@ class Novel(db.Model):
             "genre": self.genre,
             "description": self.description,
             "cover_image": self.cover_image,
+            "theme": self.theme,
             "publish_date": self.publish_date.strftime('%Y-%m-%d') if self.publish_date else None
         }
 
@@ -79,7 +81,7 @@ user = db.relationship("Users", backref="reviews")
 class Reviews(db.Model):
     __tablename__ = "reviews"  # Ensure table name matches the database
     review_id = db.Column(db.Integer, primary_key=True)
-    novel_id = db.Column(db.Integer, nullable=False)
+    novel_id = db.Column(db.Integer, nullable=True)
     user_id = db.Column(db.Integer, nullable=False)
     rating = db.Column(db.Integer, nullable=False, default=0)
     review_text = db.Column(db.String(225), nullable=False)
@@ -208,6 +210,7 @@ def add_novel():
         genre = request.form["genre"]
         description = request.form["description"]
         cover_image = request.files["cover_image"]
+        theme = request.form["theme"]
         if cover_image:
             filename = secure_filename(cover_image.filename)
             cover_image.save(os.path.join(
@@ -215,7 +218,7 @@ def add_novel():
         else:
             filename = None
         new_novel = Novel(novel_title=novel_title, author=author,
-                          genre=genre, description=description, cover_image=filename)
+                          genre=genre, description=description, cover_image=filename, theme=theme)
         db.session.add(new_novel)
         db.session.commit()
         return redirect(url_for("panel"))
@@ -254,6 +257,7 @@ def edit_novel(novel_id):
         novel.author = request.form.get("author")
         novel.genre = request.form.get("genre")
         novel.description = request.form.get("description")
+        novel.theme = request.form.get("theme")
         novel.publish_date = request.form.get("publish_date")
 
         # Save changes

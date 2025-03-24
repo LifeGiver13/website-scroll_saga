@@ -2,13 +2,14 @@
 {% block content %}
 
 <main class="col-sm-12 col-xs-12 main main-expand-lg bg-body-tertiary">
-    <div class="card color mb-3" style="padding: 50px; max-width: 100rem;">
+    <div class="card bg-danger mb-3" style="padding: 50px; max-width: 100rem;">
         <div class="card mb-3">
             <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}" class="card-img-top"
                 alt="Book Cover" style="width: 40%; margin: 25px 400px;">
             <div class="card-body">
                 <h5 class="card-title text-center">{{ novel.novel_title }}</h5>
-                <p class="card-text">{{ novel.description }}</p>
+                <p class="card-text">Description: {{ novel.description }}</p>
+                <p class="card-text">Theme: <i>{{ novel.theme }}</i></p>
                 <p class="card-text"><small class="text-muted">{{ novel.publish_date }}</small></p>
                 <p class="card-text">{{ novel.chapters }}</p>
             </div>

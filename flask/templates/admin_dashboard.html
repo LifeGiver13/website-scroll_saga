@@ -63,6 +63,7 @@
                         <th>Title</th>
                         <th>Author</th>
                         <th>Genre</th>
+                        <th>Theme</th>
                         <th>Date</th>
                         <th>Actions</th>
                     </tr>
@@ -74,6 +75,7 @@
                         <td>{{ novel["novel_title"] }}</td>
                         <td>{{ novel["author"] }}</td>
                         <td>{{ novel["genre"] }}</td>
+                        <td>{{ novel["theme"]}}</td>
                         <td>{{ novel["publish_date"] }}</td>
                         <td>
                             <a href="{{ url_for('edit_novel', novel_id=novel['novel_id']) }}"
