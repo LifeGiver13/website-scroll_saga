@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect, session, flash
+from flask import Flask, render_template, request, url_for, redirect, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import pymysql
@@ -15,6 +15,9 @@ app.secret_key = "kenko182kaneju7364&*(jacee)[2]&238#"
 
 # Set the folder for uploaded cover images
 app.config["UPLOAD_FOLDER"] = "static/uploaded_cover_page"
+
+# Set the folder for uploaded profile photo
+app.config["UPLOAD_FOLDER"] = "static/uploaded_profile_photo"
 
 # Configure MySQL connection for SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://life_giver:lifegiver13@localhost/scroll_saga'
@@ -58,7 +61,7 @@ class Users(db.Model):
     email_address = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(255), nullable=False)
-    profile_photo = db.Column(db.Text, nullable=True)
+    profile_photo = db.Column(db.Text, nullable=True, default="default.png")
     user_bio = db.Column(db.String(255), nullable=False, default=0)
 
     def to_dict(self):
@@ -84,10 +87,11 @@ class Reviews(db.Model):
     novel_id = db.Column(db.Integer, nullable=True)
     user_id = db.Column(db.Integer, nullable=False)
     rating = db.Column(db.Integer, nullable=False, default=0)
+    novel_name = db.Column(db.String(225), nullable=False)
     review_text = db.Column(db.String(225), nullable=False)
     publish_time = db.Column(db.DateTime, default=datetime.utcnow)
     username = db.Column(db.String(255), nullable=False)
-    profile_photo = db.Column(db.Text, nullable=False, default="default.png")
+    profile_photo = db.Column(db.Text, nullable=True, default="default.png")
 
     def to_dict(self):
         """Convert the novel object to a dictionary."""
@@ -96,6 +100,7 @@ class Reviews(db.Model):
             "novel_id": self.novel_id,
             "rating": self.rating,
             "review_text": self.review_text,
+            "novel_name": self.novel_name,
             "publish_time": self.publish_time.strftime('%Y-%m-%d'),
             "chapters": self.user_id,
             "user": self.username,
@@ -119,6 +124,7 @@ def login():
             return redirect(url_for("novel_list"))
         else:
             flash("Invalid username or password", "danger")
+
     return redirect(url_for("novel_list"))  # Reload the homepage
 
 
@@ -128,7 +134,7 @@ def register():
     email = request.form.get("registerEmail")
     password = request.form.get("registerPassword")
     confirm_password = request.form.get("confirmPassword")
-
+    fileName = request.files.get('profile')
     # Check if passwords match
     if password != confirm_password:
         flash("Passwords do not match. Please try again.", "danger")
@@ -138,19 +144,85 @@ def register():
     existing_email = Users.query.filter_by(email_address=email).first()
     if existing_email:
         flash("Email already exists. Please log in.", "warning")
-        return redirect(url_for("novel_list"))
+        return redirect(url_for("login"))
 
     # Check if the username already exists
     existing_username = Users.query.filter_by(username=username).first()
     if existing_username:
         flash("Username already taken. Please choose another one.", "warning")
-        return redirect(url_for("novel_list"))
+        return redirect(url_for("register"))
+
+    # Default profile photo
+    profile_photo_filename = "default.png"
+
+    # If a file was uploaded and it's not empty
+    if fileName and fileName.filename != '':
+        # Save the file to your uploads directory (adjust the path if needed)
+        upload_folder = os.path.join(
+            app.root_path, 'static/uploaded_profile_photo')
+        os.makedirs(upload_folder, exist_ok=True)  # Ensure the folder exists
+        file_path = os.path.join(upload_folder, fileName.filename)
+        fileName.save(file_path)
+
+        profile_photo_filename = fileName.filename
 
     # Hash the password
     hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
 
+    files = []
+    if fileName and fileName.filename != '':
+        files.append(
+            ("inline", (fileName.filename, fileName.stream, fileName.mimetype)))
+        print(files)
+        url = "https://api.mailgun.net/v3/sandbox731194d37470413e8c548a52a345d7c7.mailgun.org/messages"
+
+        data = {
+            "from": "WIMHouse@sandbox731194d37470413e8c548a52a345d7c7.mailgun.org",
+            "to": [email],
+            "subject": "Welcome to WIM House(Info from the API)",
+            "html": f"""
+    <html>
+    <body style="margin: 0; padding: 0; background-color: #f3e5ab;">
+        <div style="
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 40px;
+            background-image: url('https://sdmntprwestus.oaiusercontent.com/files/00000000-47c4-5230-affb-aedb600b6668/raw?se=2025-04-06T22%3A51%3A35Z&sp=r&sv=2024-08-04&sr=b&scid=e37f039a-0900-5c20-900b-a7f5f8a2410d&skoid=de76bc29-7017-43d4-8d90-7a49512bae0f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-06T07%3A09%3A14Z&ske=2025-04-07T07%3A09%3A14Z&sks=b&skv=2024-08-04&sig=2QAzqOu8VcmLgFDBer5LwdvDHM58KQG6CBTw5%2BX/WEo%3D'); /* placeholder parchment image */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            border: 10px solid #a87c4f;
+            border-radius: 20px;
+            font-family: 'Georgia', serif;
+            color: #4b3621;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+        ">
+            <h1 style="text-align: center; font-size: 28px;">📜 Welcome to Scroll Saga 📜</h1>
+            <p style="font-size: 18px; line-height: 1.6;">
+                Dear <strong>{username}</strong>,<br><br>
+                You have been chosen to embark on a sacred journey through the realms of imagination.
+                The Novel World awaits you — a haven where reality fades and fantasy thrives.
+            </p>
+            <p style="font-size: 18px; line-height: 1.6;">
+                Read stories, support the writers, and help bring these worlds to life — maybe even on screen one day! ✨
+            </p>
+            <p style="font-size: 18px; line-height: 1.6;">
+                Here is your uploaded Profile photo (if any) and your passport to this otherworldly domain.
+            </p>
+            <p style="font-size: 16px; text-align: right;">- The WIM House Guild</p>
+        </div>
+    </body>
+    </html>
+    """,
+        }
+        files = files
+        auth = ("api", "04e7193703a33f3123f6eb1cf196e9bb-24bda9c7-1550a8f8")
+
+        response = requests.post(url, auth=auth, data=data, files=files)
+        print(response.status_code)
+        print("Response Status Code: ", response.json())
+
     # Assign a default profile picture
-    default_profile_photo = "default.png"
 
     # Create a new user
     new_user = Users(
@@ -158,16 +230,16 @@ def register():
         email_address=email,
         password=hashed_password,
         role="user",
-        profile_photo=default_profile_photo,  # Set default image
+        profile_photo=profile_photo_filename,
+        # Set default image
         # Change from "None" (string) to actual None (NULL in database)
         user_bio=None
     )
 
-    # Save to database
+    flash("Registration successful! Please log in.", "success")
     db.session.add(new_user)
     db.session.commit()
 
-    flash("Registration successful! Please log in.", "success")
     return redirect(url_for("novel_list"))
 # Logout Route
 
@@ -191,10 +263,13 @@ def panel():
     novels = Novel.query.all()  # Fetch all novels from the database
     novels_data = [novel.to_dict()
                    for novel in novels]
-    return render_template("admin_dashboard.html", page_title="Admin Panel", novels=novels_data)
+    users = Users.query.all()
+    usersdata = [user.to_dict()
+                 for user in users]
+    return render_template("admin_dashboard.html", page_title="Admin Panel", novels=novels_data, users=usersdata)
 
 
-@app.route("/landing_page")
+@app.route("/")
 def novel_list():
     novels = Novel.query.all()  # Fetch all novels from the database
     novels_data = [novel.to_dict()
@@ -202,8 +277,9 @@ def novel_list():
     return render_template("index.html", novels=novels_data, date=datetime.utcnow().strftime('%Y-%m-%d'))
 
 
-@app.route("/add_novel", methods=["GET", "POST"])
+@app.route("/add_novel", methods=["POST"])
 def add_novel():
+    print(request.form)
     if request.method == "POST":
         novel_title = request.form["novel_title"]
         author = request.form["author"]
@@ -211,6 +287,7 @@ def add_novel():
         description = request.form["description"]
         cover_image = request.files["cover_image"]
         theme = request.form["theme"]
+        publish_date = request.form["publish_date"]
         if cover_image:
             filename = secure_filename(cover_image.filename)
             cover_image.save(os.path.join(
@@ -218,11 +295,13 @@ def add_novel():
         else:
             filename = None
         new_novel = Novel(novel_title=novel_title, author=author,
-                          genre=genre, description=description, cover_image=filename, theme=theme)
+                          genre=genre, description=description, cover_image=filename, theme=theme, publish_date=publish_date)
         db.session.add(new_novel)
         db.session.commit()
-        return redirect(url_for("panel"))
-    return render_template("add_novel.html")
+    print(new_novel)
+    return jsonify(new_novel[0])
+    # return jsonify({"message": "Novel added successfully!", "novel_id": new_novel.novel_title})
+    # return render_template("add_novel.html")
 
 
 # @app.route("/")
@@ -240,7 +319,7 @@ def add_novel():
 #     return render_template("index.html", novels=novels)
 
 
-@app.route("/delete_novel/<int:novel_id>", methods=["POST"])
+@app.route("/delete_novel/<int:novel_id>", methods=["POST", "DELETE"])
 def delete_novel(novel_id):
     novel = Novel.query.get_or_404(novel_id)
     db.session.delete(novel)
@@ -265,7 +344,7 @@ def edit_novel(novel_id):
 
         return redirect(url_for("panel"))
 
-    return render_template("edit_novel_form.html", novel=novel)
+    # return render_template("edit_novel_form.html", novel=novel)
 
 
 @app.route("/novel/<int:novel_id>/<string:novel_title>", methods=["GET", "POST"])
@@ -286,6 +365,7 @@ def novel_details_page(novel_id, novel_title):
                 novel_id=novel_id,
                 user_id=user.user_id,  # Associate review with logged-in user
                 username=user.username,  # Store username
+                novel_name=novel_title,
                 profile_photo=user.profile_photo,  # Store profile photo
                 review_text=content,
                 publish_time=datetime.utcnow()

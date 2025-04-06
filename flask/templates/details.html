@@ -1,10 +1,12 @@
 {% extends "default_page.html" %}
 {% block content %}
+<link rel="icon" type="image/png" href="static/images/saga_scroll.webp">
+
 
 <main class="col-sm-12 col-xs-12 main main-expand-lg bg-body-tertiary">
-    <div class="card bg-danger mb-3" style="padding: 50px; max-width: 100rem;">
+    <div class="card bg-dark mb-3" style="padding: 50px; max-width: 100rem;">
         <div class="card mb-3">
-            <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}" class="card-img-top"
+            <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}" class="round-circle"
                 alt="Book Cover" style="width: 40%; margin: 25px 400px;">
             <div class="card-body">
                 <h5 class="card-title text-center">{{ novel.novel_title }}</h5>
@@ -23,9 +25,15 @@
         {% for review in reviews %}
         <div class="review">
             <img src="{{ url_for('static', filename='uploaded_profile_photos/' + review.profile_photo) }}"
-                alt="User Photo" class="profile-pic">
-            <p><strong>{{ review.username }}</strong> - {{ review.publish_time }}</p>
+                alt="User Photo" class="rounded-circle w-2 h-auto border border-primary">
+            <div>
+                <!-- <img src="{{ url_for('static', filename='uploaded_profile_photos/' + review.profile_photo) }}"
+                    class="rounded-circle" alt="Profile Photo" width="10" height="10"> -->
+
+                <p><strong>{{ review.username }}</strong></p>
+            </div>
             <p>{{ review.review_text }}</p>
+            <p>{{ review.publish_time }}</p>
         </div>
         {% endfor %}
         {% else %}

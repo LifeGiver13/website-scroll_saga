@@ -42,7 +42,8 @@
             </div>
             <div class="mb-3">
                 <label for="theme" class="form-label">Theme</label>
-                <textarea class="form-control" id="theme" name="theme" rows="3" required>{{ novel.theme }}</textarea>
+                <textarea class="form-control" id="theme" name="theme" rows="3"
+                    required>{{ novel.theme if novel else '' }}</textarea>
             </div>
             <div class="mb-3">
                 <label for="publish_date" class="form-label">Publish Date</label>

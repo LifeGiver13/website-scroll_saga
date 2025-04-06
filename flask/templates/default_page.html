@@ -154,7 +154,8 @@
                                                 {% endif %}
                                                 {% endwith %}
 
-                                                <form method="post" action="{{ url_for('register') }}">
+                                                <form method="post" action="{{ url_for('register') }}"
+                                                    enctype="multipart/form-data">
                                                     <div class="mb-3">
                                                         <label for="registerUsername"
                                                             class="form-label">Username</label>
@@ -167,6 +168,12 @@
                                                             Address</label>
                                                         <input type="email" class="form-control" name="registerEmail"
                                                             required>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label for="registerEmail" class="form-label">Profile Photo
+                                                        </label>
+                                                        <input type="file" class="form-control" name="profile">
                                                     </div>
 
                                                     <div class="mb-3">
