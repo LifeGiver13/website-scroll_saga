@@ -17,7 +17,7 @@ app.secret_key = "kenko182kaneju7364&*(jacee)[2]&238#"
 app.config["UPLOAD_FOLDER"] = "static/uploaded_cover_page"
 
 # Set the folder for uploaded profile photo
-app.config["UPLOAD_FOLDER"] = "static/uploaded_profile_photo"
+app.config["UPLOAD_FOLDER2"] = "static/images"
 
 # Configure MySQL connection for SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://life_giver:lifegiver13@localhost/scroll_saga'
@@ -128,7 +128,7 @@ def login():
     return redirect(url_for("novel_list"))  # Reload the homepage
 
 
-@app.route("/register", methods=["POST"])
+@app.route("/register", methods=["POST", "GET"])
 def register():
     username = request.form.get("registerUsername")
     email = request.form.get("registerEmail")
@@ -159,7 +159,7 @@ def register():
     if fileName and fileName.filename != '':
         # Save the file to your uploads directory (adjust the path if needed)
         upload_folder = os.path.join(
-            app.root_path, 'static/uploaded_profile_photo')
+            app.root_path, 'static/images')
         os.makedirs(upload_folder, exist_ok=True)  # Ensure the folder exists
         file_path = os.path.join(upload_folder, fileName.filename)
         fileName.save(file_path)
@@ -253,9 +253,38 @@ def logout():
 # Home route (for listing novels)
 
 
+@app.route("/update_profile", methods=["POST"])
+def update_profile():
+    if 'username' not in session:
+        return redirect("/login")
+
+    user = Users.query.filter_by(username=session['username']).first()
+
+    if user:
+        user.username = request.form['username']
+        user.email_address = request.form['email_address']
+        user.user_bio = request.form['user_bio']
+
+        # Handle profile photo upload
+        photo = request.files.get('profile_photo')
+        if photo and photo.filename != '':
+            filename = secure_filename(photo.filename)
+            photo.save(os.path.join('static/images', filename))
+            user.profile_photo = filename
+
+        db.session.commit()
+        flash("Profile updated successfully!", "success")
+
+    return redirect(url_for('novel_list'))
+
+
 @app.route("/profile")
 def profile():
-    return render_template("user_details.html", page_title="Profile")
+    if 'username' not in session:
+        return redirect("/login")
+
+    user = Users.query.filter_by(username=session['username']).first()
+    return render_template("profile.html", current_user=user)
 
 
 @app.route("/admin_panel", methods=["GET", "POST"])
@@ -274,7 +303,12 @@ def novel_list():
     novels = Novel.query.all()  # Fetch all novels from the database
     novels_data = [novel.to_dict()
                    for novel in novels]  # Convert to dictionaries
-    return render_template("index.html", novels=novels_data, date=datetime.utcnow().strftime('%Y-%m-%d'))
+    current_user = None
+    if 'username' in session:
+        current_user = Users.query.filter_by(
+            username=session['username']).first()
+
+    return render_template("index.html", novels=novels_data, current_user=current_user, date=datetime.utcnow().strftime('%Y-%m-%d'))
 
 
 @app.route("/add_novel", methods=["POST"])

@@ -1,0 +1,43 @@
+{%extends "default_page.html" %}
+{%block content%}
+<main style="padding: 10px; background-image: url(static/images/sAga_scroll.webp);">
+    <div class="container mt-5 mb-5" style="background-color: #f5deb3;">
+        <h2 class="mb-4">Update Profile</h2>
+        <form action="/update_profile" method="POST" enctype="multipart/form-data">
+
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" name="username"
+                    value="{{ current_user.username }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="email_address" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email_address" name="email_address"
+                    value="{{ current_user.email_address }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="user_bio" class="form-label">Bio</label>
+                <textarea class="form-control" id="user_bio" name="user_bio"
+                    rows="3">{{ current_user.user_bio }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="profile_photo" class="form-label">Profile Photo</label>
+                <input class="form-control" type="file" id="profile_photo" name="profile_photo" accept="image/*">
+                {% if current_user.profile_photo %}
+                <div class="mt-2">
+                    <img src="{{ url_for('static', filename='images/' ~ current_user.profile_photo) }}"
+                        alt="Current Profile Photo" class="img-thumbnail"
+                        style="width: 500px; height: 500px; object-fit: cover;">
+                </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" style="margin: 40px 550px;" class="btn btn-primary">Update Profile</button>
+        </form>
+    </div>
+</main>
+
+{%endblock%}
