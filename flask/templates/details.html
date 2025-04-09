@@ -1,19 +1,24 @@
 {% extends "default_page.html" %}
 {% block content %}
 <link rel="icon" type="image/png" href="static/images/saga_scroll.webp">
-
+{% if "username" in session %}
 
 <main class="col-sm-12 col-xs-12 main main-expand-lg bg-body-tertiary">
-    <div class="card bg-dark mb-3" style="padding: 50px; max-width: 100rem;">
+    <div class="card bg-dark mb-3" style="margin: auto; max-width: 100rem;">
         <div class="card mb-3">
             <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}" class="round-circle"
-                alt="Book Cover" style="width: 40%; margin: 25px 400px;">
+                alt="Book Cover" style="width: 200px; height: 200px; margin: 25px 43%;">
             <div class="card-body">
-                <h5 class="card-title text-center">{{ novel.novel_title }}</h5>
-                <p class="card-text">Description: {{ novel.description }}</p>
-                <p class="card-text">Theme: <i>{{ novel.theme }}</i></p>
+                <h2 class="card-title text-center"><strong>{{ novel.novel_title }}</strong></h2>
+                <p class="card-text text-muted">Description:<i>{{ novel.description }}</i></p>
+                <p class="card-text text-muted">Genre: <i>{{ novel.genre }}</i></p>
+                <p class="card-text text-muted">Theme: <i>{{ novel.theme }}</i></p>
                 <p class="card-text"><small class="text-muted">{{ novel.publish_date }}</small></p>
-                <p class="card-text">{{ novel.chapters }}</p>
+                <button class="btn btn-outline-warning save-btn" data-novel-id="{{ novel.novel_id }}">
+                    📚 Save to Booklist
+                </button>
+                <p class="text-center" style="font: 220% 'Georgia';">Chapter 1</p>
+                <p class="card-text text-center container-fluid">{{ novel.chapters }}</p>
             </div>
         </div>
     </div>
@@ -24,16 +29,18 @@
         {% if reviews %}
         {% for review in reviews %}
         <div class="review">
-            <img src="{{ url_for('static', filename='uploaded_profile_photos/' + review.profile_photo) }}"
-                alt="User Photo" class="rounded-circle w-2 h-auto border border-primary">
-            <div>
+            <p><img src="{{ url_for('static', filename='images/' + review.profile_photo) }}" alt="User Photo"
+                    class="rounded-circle w-2 h-auto border border-primary"
+                    style="width: 30px; height: 30px; object-fit: cover;">
+
                 <!-- <img src="{{ url_for('static', filename='uploaded_profile_photos/' + review.profile_photo) }}"
                     class="rounded-circle" alt="Profile Photo" width="10" height="10"> -->
 
-                <p><strong>{{ review.username }}</strong></p>
-            </div>
+                <strong>{{ review.username }}</strong>
+
             <p>{{ review.review_text }}</p>
-            <p>{{ review.publish_time }}</p>
+            </p>
+            <p><sub>{{ review.publish_time }}</sub></p>
         </div>
         {% endfor %}
         {% else %}
@@ -41,7 +48,6 @@
         {% endif %}
 
         <!-- Comment Form (Only for Logged-In Users) -->
-        {% if "username" in session %}
         <div class="card mt-4">
             <div class="card-body">
                 <h5 class="card-title">Add a Comment</h5>
@@ -56,7 +62,7 @@
         </div>
         {% else %}
         <p> <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#loginModal"
-                class="nav-item">Login</button> to add a comment </p>
+                class="nav-item">Login</button> to Read a novel and add A comment </p>
         {% endif %}
     </div>
 
@@ -114,5 +120,23 @@
         font-weight: 500;
     }
 </style>
+<script>
+    document.querySelectorAll(".save-btn").forEach(button => {
+        button.addEventListener("click", () => {
+            const novelId = button.getAttribute("data-novel-id");
+
+            fetch(`/save_novel/${novelId}`, {
+                method: "POST"
+            }).then(res => res.json())
+                .then(data => {
+                    if (data.status === "saved") {
+                        button.textContent = "✅ Saved to Booklist";
+                        button.classList.remove("btn-outline-warning");
+                        button.classList.add("btn-success");
+                    }
+                });
+        });
+    });
+</script>
 
 {% endblock %}

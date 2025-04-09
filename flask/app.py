@@ -26,6 +26,8 @@ db = SQLAlchemy(app)  # Initialize SQLAlchemy with Flask app
 
 # Define the Novel model
 
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+
 
 class Novel(db.Model):
     __tablename__ = "novel_listings"  # Ensure table name matches the database
@@ -62,7 +64,7 @@ class Users(db.Model):
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(255), nullable=False)
     profile_photo = db.Column(db.Text, nullable=True, default="default.png")
-    user_bio = db.Column(db.String(255), nullable=False, default=0)
+    user_bio = db.Column(db.String(255), nullable=True, default="None")
 
     def to_dict(self):
         """Convert the user object to a dictionary."""
@@ -73,7 +75,7 @@ class Users(db.Model):
             "password": self.password,
             "role": self.role,
             "profile_photo": self.profile_photo,
-            "user_bio": self.user_bio if self.user_bio else None
+            "user_bio": self.user_bio if self.user_bio else "None"
         }
     # Relationship with Users table
 
@@ -103,9 +105,26 @@ class Reviews(db.Model):
             "novel_name": self.novel_name,
             "publish_time": self.publish_time.strftime('%Y-%m-%d'),
             "chapters": self.user_id,
-            "user": self.username,
+            "username": self.username,
             "profile_photo": self.profile_photo,
 
+        }
+
+
+class BookList(db.Model):
+    __tablename__ = 'book_list'
+    bookList_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
+    novel_id = db.Column(db.Integer, db.ForeignKey('novel_listings.novel_id'))
+
+    user = db.relationship("Users", backref="book_list")
+    novel = db.relationship("Novel", backref="saved_by_users")
+
+    def to_dict(self):
+        return {
+            "bookList_id": self.bookList_id,
+            "user_id": self.user_id,
+            "novel_id": self.novel_id
         }
 
 
@@ -135,6 +154,7 @@ def register():
     password = request.form.get("registerPassword")
     confirm_password = request.form.get("confirmPassword")
     fileName = request.files.get('profile')
+    user_bio = request.form.get("user_bio")
     # Check if passwords match
     if password != confirm_password:
         flash("Passwords do not match. Please try again.", "danger")
@@ -233,7 +253,7 @@ def register():
         profile_photo=profile_photo_filename,
         # Set default image
         # Change from "None" (string) to actual None (NULL in database)
-        user_bio=None
+        user_bio=user_bio
     )
 
     flash("Registration successful! Please log in.", "success")
@@ -292,10 +312,24 @@ def panel():
     novels = Novel.query.all()  # Fetch all novels from the database
     novels_data = [novel.to_dict()
                    for novel in novels]
+    return render_template("admin_dashboard.html", page_title="Admin Panel", novels=novels_data)
+
+
+@app.route("/users", methods=["POST", "GET"])
+def users():
     users = Users.query.all()
     usersdata = [user.to_dict()
                  for user in users]
-    return render_template("admin_dashboard.html", page_title="Admin Panel", novels=novels_data, users=usersdata)
+    return render_template("total_users.html", page_title="Users", users=usersdata)
+
+
+@app.route("/comments", methods=["POST", "GET"])
+def comments():
+    reviews = Reviews.query.all()
+
+    review_data = [review.to_dict()
+                   for review in reviews]
+    return render_template("comments.html", page_title="Reviews", reviews=review_data)
 
 
 @app.route("/")
@@ -338,6 +372,20 @@ def add_novel():
     # return render_template("add_novel.html")
 
 
+@app.route('/search')
+def search():
+    query = request.args.get('query')
+    results = []
+
+    if query:
+        # Example: search in novel titles or descriptions
+        results = Novel.query.filter(
+            Novel.novel_title.ilike(f'%{query}%') |
+            Novel.description.ilike(f'%{query}%')
+        ).all()
+
+    return render_template('search_results.html', query=query, results=results)
+
 # @app.route("/")
 # def home():
 #     # Replace with the actual API endpoint
@@ -357,6 +405,22 @@ def add_novel():
 def delete_novel(novel_id):
     novel = Novel.query.get_or_404(novel_id)
     db.session.delete(novel)
+    db.session.commit()
+    return redirect(url_for("panel"))
+
+
+@app.route("/delete_comment/<int:review_id>", methods=["POST", "DELETE"])
+def delete_comment(review_id):
+    review = Reviews.query.get_or_404(review_id)
+    db.session.delete(review)
+    db.session.commit()
+    return redirect(url_for("panel"))
+
+
+@app.route("/delete_user/<int:user_id>", methods=["POST", "DELETE"])
+def delete_user(user_id):
+    user = Users.query.get_or_404(user_id)
+    db.session.delete(user)
     db.session.commit()
     return redirect(url_for("panel"))
 
@@ -390,8 +454,8 @@ def novel_details_page(novel_id, novel_title):
         if "user_id" not in session:
             flash("You need to be logged in to post a comment.", "danger")
             return redirect(url_for("login"))
-
         user = Users.query.get(session["user_id"])  # Fetch the logged-in user
+
         content = request.form.get("content")
 
         if content and user:
@@ -415,6 +479,34 @@ def novel_details_page(novel_id, novel_title):
 @app.route("/about")
 def about():
     return render_template("default_page.html", page_title="About Us")
+
+
+@app.route('/my_booklist', methods=["POST", "GET"])
+def my_booklist():
+    saved = BookList.query.filter_by(user_id=["user_id"]).all()
+    novels = [entry.novel for entry in saved]
+    return render_template('booksList.html', novels=novels)
+
+
+@app.route('/save_novel/<int:novel_id>', methods=['POST'])
+def save_novel(novel_id):
+    already_saved = BookList.query.filter_by(
+        user_id=session["user_id"], novel_id=novel_id).first()
+    if not already_saved:
+        new_entry = BookList(user_id=session["user_id"], novel_id=novel_id)
+        db.session.add(new_entry)
+        db.session.commit()
+    return jsonify(status="saved")
+
+
+@app.route('/unsave_novel/<int:novel_id>', methods=['POST'])
+def unsave_novel(novel_id):
+    saved = BookList.query.filter_by(
+        user_id=session["user_id"], novel_id=novel_id).first()
+    if saved:
+        db.session.delete(saved)
+        db.session.commit()
+    return jsonify(status="unsaved")
 
 
 # Run the Flask app

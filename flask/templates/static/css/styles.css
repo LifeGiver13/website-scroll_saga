@@ -14,9 +14,14 @@ nav {
     background-color: #8b5a2b;
 }
 
+.non>.nav-item a:hover {
+    background-color: #8b5a2b;
+}
+
 main {
     background-color: #f5deb3;
     height: auto;
+    width: auto;
 
 }
 

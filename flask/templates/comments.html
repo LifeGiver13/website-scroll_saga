@@ -1,0 +1,44 @@
+{%extends "admin_dashboard.html"%}
+{%block content%}
+\<!-- Recent Novels Table -->
+<h2 class="mt-4">📝 Recent Comments</h2>
+<div class="table-container table-responsive">
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Comment</th>
+                <th>Novel Name</th>
+                <th>Publish Time</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in reviews %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ review["username"] }}</td>
+                <td>{{ review["review_text"] }}</td>
+                <td>{{ review["novel_name"] }}</td>
+                <td>{{review["publish_time"]}}</td>
+                <td>
+                    <form action="" method="delete">
+                        <button type="submit" onclick="delete_comment(`{{review['review_id']}}`)"
+                            class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    async function delete_comment(review_id) {
+        const response = await fetch(`/delete_comment/${review_id}`, { method: "DELETE" });
+        const result = await response.json();
+        console.log("Deleted:", result);
+    }
+
+</script>
+{%endblock%}

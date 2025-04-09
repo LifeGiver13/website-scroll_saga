@@ -1,0 +1,32 @@
+{% extends 'default_page.html' %}
+
+{% block content %}
+<h2 class="text-center">Search Results for "{{ query }}"</h2>
+
+{% if results %}
+<ul class="list-group">
+    {% for novel in results %}
+    <li class="list-group-item">
+        <p>
+            <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}" class="round-circle"
+                alt="Book Cover" style="float: left; width: 200px; height: 200px; margin: 5px 3%;">
+
+        <p style="font: 2em sans-serif;"><strong>{{
+                novel.novel_title
+                }}</strong>
+        </p>
+
+        <p>{{ novel.description[:100] }}...</p>
+        <p>{{novel.theme}}</p>
+        <p class="text-center"><a href="/novel/{{novel['novel_id']}}/{{novel['novel_title']}}"
+                class="btn btn-primary">Read
+                Now!</a>
+        </p>
+        </p>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No results found.</p>
+{% endif %}
+{% endblock %}

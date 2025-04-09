@@ -8,19 +8,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="static/css/styles.css" rel="stylesheet" type="text/css" />
     <link rel="icon" type="image/png" href="static/images/saga_scroll.webp">
-
-
 </head>
 
 <body>
-
     <!-- Sidebar -->
     <div class="sidebar">
         <h2>Admin Panel</h2>
         <a href="{{url_for('novel_list')}}">🏠Home</a>
         <a href="{{url_for('panel')}}">📊 Dashboard</a>
-        <a href="{{url_for('novel_list')}}">📚 Novels</a>
-        <a href="#">👥 Users</a>
+        <a href="{{url_for('panel')}}">📚 Novels</a>
+        <a href="{{url_for('users')}}">👥 Users</a>
+        <a href="{{url_for('comments')}}">📝 Reviews</a>
         <a href="#">⚙️ Settings</a>
     </div>
 
@@ -32,31 +30,44 @@
         <div class="row">
             <div class="col-md-4">
                 <div class="card">
-                    <h3>📚 Total Novels</h3>
-                    <p>{{row_count }}</p>
+                    <h3><a href="{{url_for('panel')}}">📚 Total Novels</a></h3>
+                    <p id="novelCount">{{row_count}}</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card">
-                    <h3>👥 Total Users</h3>
+                    <h3><a href="{{url_for('users')}}">👥 Total Users</a></h3>
                     <p>{{user_count}}</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card">
-                    <h3>📝 Reviews</h3>
-                    <p>{{revies_num}}</p>
+                    <h3><a href="{{url_for('comments')}}">📝 Reviews</a></h3>
+                    <p>{{reviews_num}}</p>
                 </div>
             </div>
         </div>
+        {%block content%}
 
         <!-- Recent Novels Table -->
         <h2 class="mt-4">📖 Recent Novels</h2>
-        <form action="{{ url_for('add_novel') }}" methods="GET">
-            <button type="submit" class="btn btn-success">Upload a novel</button>
-        </form>
+        <button onclick="openNovelForm()" class="btn btn-success">Upload a novel</button>
+        <div id="novelForm" style="display: none;">
+            <form method="post" enctype="multipart/form-data" id="novelForm">
+                <input type="text" id="novelTitle" placeholder="Novel Title" required>
+                <input type="text" id="author" placeholder="Author" required>
+                <input type="text" id="genre" placeholder="Genre" required>
+                <input type="text" id="theme" placeholder="Theme">
+                <textarea id="description" placeholder="Description"></textarea>
+                <input type="date" id="publishDate">
+                <input type="file" id="coverImage" accept="image/*">
+                <button type="button" onclick="addNovel()">Add Novel</button>
+            </form>
+
+
+        </div>
         <div class="table-container table-responsive">
-            <table class="table table-striped mt-3">
+            <table class="table table-striped mt-3" id="novelTable">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -70,20 +81,20 @@
                 </thead>
                 <tbody>
                     {% for novel in novels %}
-                    <tr>
+                    <tr id="novel-{{ novel['novel_id'] }}">
                         <td>{{ loop.index }}</td>
                         <td>{{ novel["novel_title"] }}</td>
                         <td>{{ novel["author"] }}</td>
                         <td>{{ novel["genre"] }}</td>
-                        <td>{{ novel["theme"]}}</td>
+                        <td>{{ novel["theme"] }}</td>
                         <td>{{ novel["publish_date"] }}</td>
                         <td>
-                            <a href="{{ url_for('edit_novel', novel_id=novel['novel_id']) }}"
-                                class="btn btn-sm btn-primary">Edit</a>
                             <form action="{{ url_for('delete_novel', novel_id=novel['novel_id']) }}" method="POST"
                                 style="display:inline;">
                                 <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                             </form>
+                            <button onclick="updateNovel()" class="btn btn-sm btn-warning">Update</button>
+
                         </td>
                     </tr>
                     {% endfor %}
@@ -91,9 +102,40 @@
             </table>
         </div>
     </div>
+    {%endblock%}
+    <script>
+        function openNovelForm() {
+            document.getElementById("novelForm").style.display = "block";
+        }
 
-    </div>
+        async function addNovel() {
+            console.log("novel uploaded");
+            const formData = new FormData();
+            formData.append("novel_title", document.getElementById("novelTitle").value);
+            formData.append("author", document.getElementById("author").value);
+            formData.append("genre", document.getElementById("genre").value);
+            formData.append("theme", document.getElementById("theme").value);
+            formData.append("description", document.getElementById("description").value);
+            formData.append("publish_date", document.getElementById("publishDate").value);
 
+
+        }
+
+        async function deleteNovel(novel_id) {
+            const response = await fetch(`/delete_novel/${novel_id}`, { method: "DELETE" });
+            const result = await response.json();
+            console.log("Deleted:", result);
+            getNovels(); // Refresh list after deletion
+        }
+
+
+
+    </script>
+    <style>
+        a {
+            color: inherit;
+        }
+    </style>
 </body>
 
 </html>

@@ -1,7 +1,6 @@
 {%extends "default_page.html" %}
 {%block content%}
-<main class=" col-sm-12 col-xs-12 main main-expand-lg bg-body-tertiary">
-    <div class="row">
+<!-- <div class="row">
 
         <nav class="col-sm-12 col-xs-12 navbar navbar-expand-lg bg-body-tertiary" style="background-color: #f5deb3;">
             <ul class="container-fluid">
@@ -12,40 +11,40 @@
             </ul>
         </nav>
 
-    </div>
-    <!-- <a href="#" style="float: right;" class="btn btn-secondary">Login</a></button> -->
-    <h1 class="text-center"> Ongoing</h1>
+    </div> -->
+<!-- <a href="#" style="float: right;" class="btn btn-secondary">Login</a></button> -->
+<h1 class="text-center"> Ongoing</h1>
 
-    <div class="row">
-        <div>
-            {% if novels %}
-            <div class="flex-cont">
-
-
-                {% for novel in novels %}
-                <div id="myDIV">
-                    <img src="{{ url_for('static', filename='images/' + novel['cover_image']) }}" alt="Book Cover">
-                    <h4 class="text-center">{{ novel["novel_title"] }}</h4>
-                    <p>Novel Genre: {{ novel["genre"] }}</p>
-                    <p>Theme: {{ novel["theme"] }}</p>
-                    <p>Author: {{ novel["author"] }}</p>
-                    <p>Published Date: {{date}} </p>
-
-                    <p class="text-center"><a href="/novel/{{novel['novel_id']}}/{{novel['novel_title']}}"
-                            class="btn btn-primary">Read
-                            Now!</a></p>
+<div class="row">
+    <div>
+        {% if novels %}
+        <div class="flex-cont">
 
 
-                </div>
-                {% endfor %}
+            {% for novel in novels %}
+            <div id="myDIV">
+                <img src="{{ url_for('static', filename='images/' + novel['cover_image']) }}" alt="Book Cover">
+                <h4 class="text-center">{{ novel["novel_title"] }}</h4>
+                <p>Novel Genre: {{ novel["genre"] }}</p>
+                <p>Description: <i>{{ novel["description"] }}</i></p>
+                <p>Author: <em>{{ novel["author"]}}</em></p>
+                <p><sub>Published Date: {{date}}</sub> </p>
+
+                <p class="text-center"><a href="/novel/{{novel['novel_id']}}/{{novel['novel_title']}}"
+                        class="btn btn-primary">Read
+                        Now!</a></p>
+
+
             </div>
-            {% else %}
-            <p>No novels uploaded yet.</p>
-            {% endif %}
-
+            {% endfor %}
         </div>
+        {% else %}
+        <p>No novels uploaded yet.</p>
+        {% endif %}
 
     </div>
+
+</div>
 </main>
 
 

@@ -1,0 +1,46 @@
+{%extends "admin_dashboard.html"%}
+{%block content%}
+\<!-- Recent Novels Table -->
+<h2 class="mt-4">👥 Recent Users</h2>
+<div class="table-container table-responsive">
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Email Address</th>
+                <th>Role</th>
+                <th>Profile Photo</th>
+                <th>User Biography</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ user["username"] }}</td>
+                <td>{{ user["email_address"] }}</td>
+                <td>{{ user["role"] }}</td>
+                <td>{{ user["profile_photo"]}}</td>
+                <td>{{ user["user_bio"] }}</td>
+                <td>
+                    <form action="" method="delete">
+                        <button type="submit" class="btn btn-sm btn-danger"
+                            onclick="delete_user(`{{user['user_id']}}`)">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    async function delete_user(user_id) {
+        const response = await fetch(`/delete_user/${user_id}`, { method: "DELETE" });
+        const result = await response.json();
+        console.log("Deleted:", result);
+    }
+
+</script>
+{%endblock%}

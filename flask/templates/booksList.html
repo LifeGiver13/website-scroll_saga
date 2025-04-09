@@ -1,0 +1,52 @@
+{% extends "default_page.html" %}
+{%block content%}
+{% if "username" in session%}
+{% for novel in novels %}
+<ul class="list-group">
+    <li class="list-group-item">
+        <p>
+            <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}" class="round-circle"
+                alt="Book Cover" style="float: left; width: 200px; height: 200px; margin: 5px 3%;">
+
+        <p style="font: 2em sans-serif;"><strong>{{
+                novel.novel_title
+                }}</strong>
+        </p>
+
+        <p>{{ novel.description[:100] }}...</p>
+        <p>{{novel.theme}}</p>
+        <p class="text-center"><a href="/novel/{{novel['novel_id']}}/{{novel['novel_title']}}"
+                class="btn btn-primary">Read
+                Now!</a>
+            <button class="btn btn-outline-warning unsave-btn" data-novel-id="{{ novel.novel_id }}">
+                📚 Unsave From Booklist
+            </button>
+        </p>
+        </p>
+    </li>
+    <script>
+        document.querySelectorAll(".unsave-btn").forEach(button => {
+            button.addEventListener("click", () => {
+                const novelId = button.getAttribute("data-novel-id");
+
+                fetch(`/unsave_novel/${novelId}`, {
+                    method: "POST"
+                }).then(res => res.json())
+                    .then(data => {
+                        if (data.status === "unsaved") {
+                            button.textContent = "✅ Removed to Booklist";
+                            button.classList.remove("btn-outline-warning");
+                            button.classList.add("btn-success");
+                        }
+                    });
+            });
+        });
+
+    </script>
+
+    {% endfor %}
+    {% else %}
+    <p> <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#loginModal" class="nav-item">Login</button>
+        to Add or See BookList</p>
+    {%endif%}
+    {% endblock %}
