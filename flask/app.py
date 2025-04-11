@@ -1,3 +1,4 @@
+from flask import render_template, request, jsonify, redirect, url_for, session, flash
 from flask import Flask, render_template, request, url_for, redirect, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -40,7 +41,6 @@ class Novel(db.Model):
     theme = db.Column(db.String(255), nullable=True)
     # Defaults to current date
     publish_date = db.Column(db.DateTime, default=datetime.utcnow)
-    chapters = db.Column(db.Integer, nullable=False, default=0)
 
     def to_dict(self):
         """Convert the novel object to a dictionary."""
@@ -54,6 +54,9 @@ class Novel(db.Model):
             "theme": self.theme,
             "publish_date": self.publish_date.strftime('%Y-%m-%d') if self.publish_date else None
         }
+  # One-to-many relationship
+    chapters = db.relationship(
+        'Chapters', backref='novel', lazy=True, cascade="all, delete-orphan")
 
 
 class Users(db.Model):
@@ -116,6 +119,9 @@ class BookList(db.Model):
     bookList_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
     novel_id = db.Column(db.Integer, db.ForeignKey('novel_listings.novel_id'))
+    # novel_title = db.Column(
+    #     db.String(225), nullable=False, )
+    # username = db.Column(db.String(255), nullable=False)
 
     user = db.relationship("Users", backref="book_list")
     novel = db.relationship("Novel", backref="saved_by_users")
@@ -124,8 +130,25 @@ class BookList(db.Model):
         return {
             "bookList_id": self.bookList_id,
             "user_id": self.user_id,
-            "novel_id": self.novel_id
+            "novel_id": self.novel_id,
+            "novel_title": self.novel_title,
+            "username": self.username
         }
+
+
+class Chapters(db.Model):
+    __tablename__ = 'chapters'
+
+    chapter_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    novel_id = db.Column(db.Integer, db.ForeignKey(
+        'novel_listings.novel_id'), nullable=False)
+
+    # Used for order within the novel
+    chapter_number = db.Column(db.Integer, nullable=False)
+    chapter_name = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+
+    # Optional: If you want to use ORM relationships later
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -149,116 +172,119 @@ def login():
 
 @app.route("/register", methods=["POST", "GET"])
 def register():
-    username = request.form.get("registerUsername")
-    email = request.form.get("registerEmail")
-    password = request.form.get("registerPassword")
-    confirm_password = request.form.get("confirmPassword")
-    fileName = request.files.get('profile')
-    user_bio = request.form.get("user_bio")
-    # Check if passwords match
-    if password != confirm_password:
-        flash("Passwords do not match. Please try again.", "danger")
-        return redirect(url_for("novel_list"))
+    if request.method == "POST":
+        username = request.form.get("registerUsername")
+        email = request.form.get("registerEmail")
+        password = request.form.get("registerPassword")
+        confirm_password = request.form.get("confirmPassword")
+        fileName = request.files.get('profile')
+        user_bio = request.form.get("user_bio")
+        # Check if passwords match
+        if password != confirm_password:
+            flash("Passwords do not match. Please try again.", "danger")
+            return redirect(url_for("novel_list"))
 
-    # Check if the email already exists
-    existing_email = Users.query.filter_by(email_address=email).first()
-    if existing_email:
-        flash("Email already exists. Please log in.", "warning")
-        return redirect(url_for("login"))
+        # Check if the email already exists
+        existing_email = Users.query.filter_by(email_address=email).first()
+        if existing_email:
+            flash("Email already exists. Please log in.", "warning")
+            return redirect(url_for("login"))
 
-    # Check if the username already exists
-    existing_username = Users.query.filter_by(username=username).first()
-    if existing_username:
-        flash("Username already taken. Please choose another one.", "warning")
-        return redirect(url_for("register"))
+        # Check if the username already exists
+        existing_username = Users.query.filter_by(username=username).first()
+        if existing_username:
+            flash("Username already taken. Please choose another one.", "warning")
+            return redirect(url_for("register"))
 
-    # Default profile photo
-    profile_photo_filename = "default.png"
+        # Default profile photo
+        profile_photo_filename = "default.png"
 
-    # If a file was uploaded and it's not empty
-    if fileName and fileName.filename != '':
-        # Save the file to your uploads directory (adjust the path if needed)
-        upload_folder = os.path.join(
-            app.root_path, 'static/images')
-        os.makedirs(upload_folder, exist_ok=True)  # Ensure the folder exists
-        file_path = os.path.join(upload_folder, fileName.filename)
-        fileName.save(file_path)
+        # If a file was uploaded and it's not empty
+        if fileName and fileName.filename != '':
+            # Save the file to your uploads directory (adjust the path if needed)
+            upload_folder = os.path.join(
+                app.root_path, 'static/images')
+            # Ensure the folder exists
+            os.makedirs(upload_folder, exist_ok=True)
+            file_path = os.path.join(upload_folder, fileName.filename)
+            fileName.save(file_path)
 
-        profile_photo_filename = fileName.filename
+            profile_photo_filename = fileName.filename
 
-    # Hash the password
-    hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+        # Hash the password
+        hashed_password = generate_password_hash(
+            password, method="pbkdf2:sha256")
 
-    files = []
-    if fileName and fileName.filename != '':
-        files.append(
-            ("inline", (fileName.filename, fileName.stream, fileName.mimetype)))
-        print(files)
-        url = "https://api.mailgun.net/v3/sandbox731194d37470413e8c548a52a345d7c7.mailgun.org/messages"
+        files = []
+        if fileName and fileName.filename != '':
+            files.append(
+                ("inline", (fileName.filename, fileName.stream, fileName.mimetype)))
+            print(files)
+            url = "https://api.mailgun.net/v3/sandbox731194d37470413e8c548a52a345d7c7.mailgun.org/messages"
 
-        data = {
-            "from": "WIMHouse@sandbox731194d37470413e8c548a52a345d7c7.mailgun.org",
-            "to": [email],
-            "subject": "Welcome to WIM House(Info from the API)",
-            "html": f"""
-    <html>
-    <body style="margin: 0; padding: 0; background-color: #f3e5ab;">
-        <div style="
-            max-width: 600px;
-            margin: 30px auto;
-            padding: 40px;
-            background-image: url('https://sdmntprwestus.oaiusercontent.com/files/00000000-47c4-5230-affb-aedb600b6668/raw?se=2025-04-06T22%3A51%3A35Z&sp=r&sv=2024-08-04&sr=b&scid=e37f039a-0900-5c20-900b-a7f5f8a2410d&skoid=de76bc29-7017-43d4-8d90-7a49512bae0f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-06T07%3A09%3A14Z&ske=2025-04-07T07%3A09%3A14Z&sks=b&skv=2024-08-04&sig=2QAzqOu8VcmLgFDBer5LwdvDHM58KQG6CBTw5%2BX/WEo%3D'); /* placeholder parchment image */
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            border: 10px solid #a87c4f;
-            border-radius: 20px;
-            font-family: 'Georgia', serif;
-            color: #4b3621;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-        ">
-            <h1 style="text-align: center; font-size: 28px;">📜 Welcome to Scroll Saga 📜</h1>
-            <p style="font-size: 18px; line-height: 1.6;">
-                Dear <strong>{username}</strong>,<br><br>
-                You have been chosen to embark on a sacred journey through the realms of imagination.
-                The Novel World awaits you — a haven where reality fades and fantasy thrives.
-            </p>
-            <p style="font-size: 18px; line-height: 1.6;">
-                Read stories, support the writers, and help bring these worlds to life — maybe even on screen one day! ✨
-            </p>
-            <p style="font-size: 18px; line-height: 1.6;">
-                Here is your uploaded Profile photo (if any) and your passport to this otherworldly domain.
-            </p>
-            <p style="font-size: 16px; text-align: right;">- The WIM House Guild</p>
-        </div>
-    </body>
-    </html>
-    """,
-        }
-        files = files
-        auth = ("api", "04e7193703a33f3123f6eb1cf196e9bb-24bda9c7-1550a8f8")
+            data = {
+                "from": "WIMHouse@sandbox731194d37470413e8c548a52a345d7c7.mailgun.org",
+                "to": [email],
+                "subject": "Welcome to WIM House(Info from the API)",
+                "html": f"""
+        <html>
+        <body style="margin: 0; padding: 0; background-color: #f3e5ab;">
+            <div style="
+                max-width: 600px;
+                margin: 30px auto;
+                padding: 40px;
+                background-image: url('https://sdmntprwestus.oaiusercontent.com/files/00000000-47c4-5230-affb-aedb600b6668/raw?se=2025-04-06T22%3A51%3A35Z&sp=r&sv=2024-08-04&sr=b&scid=e37f039a-0900-5c20-900b-a7f5f8a2410d&skoid=de76bc29-7017-43d4-8d90-7a49512bae0f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-06T07%3A09%3A14Z&ske=2025-04-07T07%3A09%3A14Z&sks=b&skv=2024-08-04&sig=2QAzqOu8VcmLgFDBer5LwdvDHM58KQG6CBTw5%2BX/WEo%3D'); /* placeholder parchment image */
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-position: center;
+                border: 10px solid #a87c4f;
+                border-radius: 20px;
+                font-family: 'Georgia', serif;
+                color: #4b3621;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            ">
+                <h1 style="text-align: center; font-size: 28px;">📜 Welcome to Scroll Saga 📜</h1>
+                <p style="font-size: 18px; line-height: 1.6;">
+                    Dear <strong>{username}</strong>,<br><br>
+                    You have been chosen to embark on a sacred journey through the realms of imagination.
+                    The Novel World awaits you — a haven where reality fades and fantasy thrives.
+                </p>
+                <p style="font-size: 18px; line-height: 1.6;">
+                    Read stories, support the writers, and help bring these worlds to life — maybe even on screen one day! ✨
+                </p>
+                <p style="font-size: 18px; line-height: 1.6;">
+                    Here is your uploaded Profile photo (if any) and your passport to this otherworldly domain.
+                </p>
+                <p style="font-size: 16px; text-align: right;">- The WIM House Guild</p>
+            </div>
+        </body>
+        </html>
+        """,
+            }
+            files = files
+            auth = ("api", "04e7193703a33f3123f6eb1cf196e9bb-24bda9c7-1550a8f8")
 
-        response = requests.post(url, auth=auth, data=data, files=files)
-        print(response.status_code)
-        print("Response Status Code: ", response.json())
+            response = requests.post(url, auth=auth, data=data, files=files)
+            print(response.status_code)
+            print("Response Status Code: ", response.json())
 
-    # Assign a default profile picture
+        # Assign a default profile picture
 
-    # Create a new user
-    new_user = Users(
-        username=username,
-        email_address=email,
-        password=hashed_password,
-        role="user",
-        profile_photo=profile_photo_filename,
-        # Set default image
-        # Change from "None" (string) to actual None (NULL in database)
-        user_bio=user_bio
-    )
+        # Create a new user
+        new_user = Users(
+            username=username,
+            email_address=email,
+            password=hashed_password,
+            role="user",
+            profile_photo=profile_photo_filename,
+            # Set default image
+            # Change from "None" (string) to actual None (NULL in database)
+            user_bio=user_bio
+        )
 
-    flash("Registration successful! Please log in.", "success")
-    db.session.add(new_user)
-    db.session.commit()
+        flash("Registration successful! Please log in.", "success")
+        db.session.add(new_user)
+        db.session.commit()
 
     return redirect(url_for("novel_list"))
 # Logout Route
@@ -300,9 +326,6 @@ def update_profile():
 
 @app.route("/profile")
 def profile():
-    if 'username' not in session:
-        return redirect("/login")
-
     user = Users.query.filter_by(username=session['username']).first()
     return render_template("profile.html", current_user=user)
 
@@ -448,23 +471,37 @@ def edit_novel(novel_id):
 @app.route("/novel/<int:novel_id>/<string:novel_title>", methods=["GET", "POST"])
 def novel_details_page(novel_id, novel_title):
     novel = Novel.query.get_or_404(novel_id)
+
+    # Get all chapters of this novel
+    chapters = Chapters.query.filter_by(
+        novel_id=novel_id).order_by(Chapters.chapter_id).all()
+
+    # Define the first chapter to display by default
+    first_chapter = chapters[0] if chapters else None
+
+    # Get reviews for this novel
     reviews = Reviews.query.filter_by(novel_id=novel_id).all()
 
+    # Redirect if not logged in
+    if 'username' not in session:
+        return redirect("/login")
+
+    # Handle POST request for new comment
     if request.method == "POST":
         if "user_id" not in session:
             flash("You need to be logged in to post a comment.", "danger")
             return redirect(url_for("login"))
-        user = Users.query.get(session["user_id"])  # Fetch the logged-in user
 
+        user = Users.query.get(session["user_id"])
         content = request.form.get("content")
 
         if content and user:
             new_review = Reviews(
                 novel_id=novel_id,
-                user_id=user.user_id,  # Associate review with logged-in user
-                username=user.username,  # Store username
+                user_id=user.user_id,
+                username=user.username,
                 novel_name=novel_title,
-                profile_photo=user.profile_photo,  # Store profile photo
+                profile_photo=user.profile_photo,
                 review_text=content,
                 publish_time=datetime.utcnow()
             )
@@ -473,19 +510,50 @@ def novel_details_page(novel_id, novel_title):
             flash("Your comment has been posted!", "success")
             return redirect(url_for("novel_details_page", novel_id=novel_id, novel_title=novel_title))
 
-    return render_template("details.html", novel=novel, reviews=reviews)
+    # Pass the novel, reviews, all chapters, and first chapter to the template
+    return render_template(
+        "details.html",
+        novel=novel,
+        reviews=reviews,
+        chapters=chapters,
+        chapter=first_chapter  # Single chapter to load initially
+    )
 
 
-@app.route("/about")
-def about():
-    return render_template("default_page.html", page_title="About Us")
+@app.route('/chapter/<int:novel_id>/<int:chapter_number>', methods=['GET'])
+def get_chapter(novel_id, chapter_number):
+    # Get the chapter by novel_id and chapter_number
+    chapter = Chapters.query.filter_by(
+        novel_id=novel_id, chapter_number=chapter_number).first()
+
+    if not chapter:
+        return jsonify({'error': 'Chapter not found'}), 404
+
+    # Find the next and previous chapters (by ID)
+    next_chapter = Chapters.query.filter_by(
+        novel_id=novel_id, chapter_number=chapter.chapter_number + 1).first()
+    prev_chapter = Chapters.query.filter_by(
+        novel_id=novel_id, chapter_number=chapter.chapter_number - 1).first()
+
+    return jsonify({
+        "chapter_name": chapter.chapter_name,
+        "content": chapter.content,
+        "previous_id": chapter.chapter_number - 1 if prev_chapter else None,
+        "next_id": chapter.chapter_number + 1 if next_chapter else None
+    })
 
 
-@app.route('/my_booklist', methods=["POST", "GET"])
+@app.route('/my_booklist', methods=["GET", "POST"])
 def my_booklist():
-    saved = BookList.query.filter_by(user_id=["user_id"]).all()
+    if "user_id" not in session:
+        # Redirect to login if user is not logged in
+        return redirect(url_for('login'))
+
+    user_id = session["user_id"]
+    saved = BookList.query.filter_by(user_id=user_id).all()
     novels = [entry.novel for entry in saved]
-    return render_template('booksList.html', novels=novels)
+
+    return render_template("booksList.html", novels=novels)
 
 
 @app.route('/save_novel/<int:novel_id>', methods=['POST'])
@@ -507,6 +575,11 @@ def unsave_novel(novel_id):
         db.session.delete(saved)
         db.session.commit()
     return jsonify(status="unsaved")
+
+
+@app.route("/about")
+def about():
+    return render_template("default_page.html", page_title="About Us")
 
 
 # Run the Flask app

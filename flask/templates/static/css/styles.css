@@ -82,6 +82,12 @@ img {
     border-radius: 5px;
 }
 
+a {
+    color: #f5deb3;
+    text-decoration: none;
+    margin: 3px 10px;
+}
+
 .nav-item a {
     font-weight: 500;
 }
