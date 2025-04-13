@@ -30,6 +30,25 @@ db = SQLAlchemy(app)  # Initialize SQLAlchemy with Flask app
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 
+class Page(db.Model):
+    __tablename__ = "pages"
+    page_id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(50), unique=True, nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    image_filename = db.Column(db.String(100))
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "page_id": self.page_id,
+            "slug": self.slug,
+            "title": self.title,
+            "content": self.content,
+            "image_filename": self.image_filename,
+            "updated_at": self.updated_at}
+
+
 class Novel(db.Model):
     __tablename__ = "novel_listings"  # Ensure table name matches the database
     novel_id = db.Column(db.Integer, primary_key=True)
@@ -151,6 +170,20 @@ class Chapters(db.Model):
     # Optional: If you want to use ORM relationships later
 
 
+@app.route('/<slug>')
+def show_page(slug):
+    novels = Novel.query.all()  # Fetch all novels from the database
+    novels_data = [novel.to_dict()
+                   for novel in novels]  # Convert to dictionaries
+    current_user = None
+    if 'username' in session:
+        current_user = Users.query.filter_by(
+            username=session['username']).first()
+
+    page = Page.query.filter_by(slug=slug).first_or_404()
+    return render_template(f'{slug}.html', page=page, novels=novels_data, current_user=current_user, date=datetime.utcnow().strftime('%Y-%m-%d'))
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -215,58 +248,58 @@ def register():
         hashed_password = generate_password_hash(
             password, method="pbkdf2:sha256")
 
-        files = []
-        if fileName and fileName.filename != '':
-            files.append(
-                ("inline", (fileName.filename, fileName.stream, fileName.mimetype)))
-            print(files)
-            url = "https://api.mailgun.net/v3/sandbox731194d37470413e8c548a52a345d7c7.mailgun.org/messages"
+        # files = []
+        # if fileName and fileName.filename != '':
+        #     files.append(
+        #         ("inline", (fileName.filename, fileName.stream, fileName.mimetype)))
+        #     print(files)
+        #     url = "https://api.mailgun.net/v3/sandbox731194d37470413e8c548a52a345d7c7.mailgun.org/messages"
 
-            data = {
-                "from": "WIMHouse@sandbox731194d37470413e8c548a52a345d7c7.mailgun.org",
-                "to": [email],
-                "subject": "Welcome to WIM House(Info from the API)",
-                "html": f"""
-        <html>
-        <body style="margin: 0; padding: 0; background-color: #f3e5ab;">
-            <div style="
-                max-width: 600px;
-                margin: 30px auto;
-                padding: 40px;
-                background-image: url('https://sdmntprwestus.oaiusercontent.com/files/00000000-47c4-5230-affb-aedb600b6668/raw?se=2025-04-06T22%3A51%3A35Z&sp=r&sv=2024-08-04&sr=b&scid=e37f039a-0900-5c20-900b-a7f5f8a2410d&skoid=de76bc29-7017-43d4-8d90-7a49512bae0f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-06T07%3A09%3A14Z&ske=2025-04-07T07%3A09%3A14Z&sks=b&skv=2024-08-04&sig=2QAzqOu8VcmLgFDBer5LwdvDHM58KQG6CBTw5%2BX/WEo%3D'); /* placeholder parchment image */
-                background-size: cover;
-                background-repeat: no-repeat;
-                background-position: center;
-                border: 10px solid #a87c4f;
-                border-radius: 20px;
-                font-family: 'Georgia', serif;
-                color: #4b3621;
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-            ">
-                <h1 style="text-align: center; font-size: 28px;">📜 Welcome to Scroll Saga 📜</h1>
-                <p style="font-size: 18px; line-height: 1.6;">
-                    Dear <strong>{username}</strong>,<br><br>
-                    You have been chosen to embark on a sacred journey through the realms of imagination.
-                    The Novel World awaits you — a haven where reality fades and fantasy thrives.
-                </p>
-                <p style="font-size: 18px; line-height: 1.6;">
-                    Read stories, support the writers, and help bring these worlds to life — maybe even on screen one day! ✨
-                </p>
-                <p style="font-size: 18px; line-height: 1.6;">
-                    Here is your uploaded Profile photo (if any) and your passport to this otherworldly domain.
-                </p>
-                <p style="font-size: 16px; text-align: right;">- The WIM House Guild</p>
-            </div>
-        </body>
-        </html>
-        """,
-            }
-            files = files
-            auth = ("api", "04e7193703a33f3123f6eb1cf196e9bb-24bda9c7-1550a8f8")
+        #     data = {
+        #         "from": "WIMHouse@sandbox731194d37470413e8c548a52a345d7c7.mailgun.org",
+        #         "to": [email],
+        #         "subject": "Welcome to WIM House(Info from the API)",
+        #         "html": f"""
+        # <html>
+        # <body style="margin: 0; padding: 0; background-color: #f3e5ab;">
+        #     <div style="
+        #         max-width: 600px;
+        #         margin: 30px auto;
+        #         padding: 40px;
+        #         background-image: url('https://sdmntprwestus.oaiusercontent.com/files/00000000-47c4-5230-affb-aedb600b6668/raw?se=2025-04-06T22%3A51%3A35Z&sp=r&sv=2024-08-04&sr=b&scid=e37f039a-0900-5c20-900b-a7f5f8a2410d&skoid=de76bc29-7017-43d4-8d90-7a49512bae0f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-06T07%3A09%3A14Z&ske=2025-04-07T07%3A09%3A14Z&sks=b&skv=2024-08-04&sig=2QAzqOu8VcmLgFDBer5LwdvDHM58KQG6CBTw5%2BX/WEo%3D'); /* placeholder parchment image */
+        #         background-size: cover;
+        #         background-repeat: no-repeat;
+        #         background-position: center;
+        #         border: 10px solid #a87c4f;
+        #         border-radius: 20px;
+        #         font-family: 'Georgia', serif;
+        #         color: #4b3621;
+        #         box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+        #     ">
+        #         <h1 style="text-align: center; font-size: 28px;">📜 Welcome to Scroll Saga 📜</h1>
+        #         <p style="font-size: 18px; line-height: 1.6;">
+        #             Dear <strong>{username}</strong>,<br><br>
+        #             You have been chosen to embark on a sacred journey through the realms of imagination.
+        #             The Novel World awaits you — a haven where reality fades and fantasy thrives.
+        #         </p>
+        #         <p style="font-size: 18px; line-height: 1.6;">
+        #             Read stories, support the writers, and help bring these worlds to life — maybe even on screen one day! ✨
+        #         </p>
+        #         <p style="font-size: 18px; line-height: 1.6;">
+        #             Here is your uploaded Profile photo (if any) and your passport to this otherworldly domain.
+        #         </p>
+        #         <p style="font-size: 16px; text-align: right;">- The WIM House Guild</p>
+        #     </div>
+        # </body>
+        # </html>
+        # """,
+        #     }
+        #     files = files
+        #     auth = ("api", "04e7193703a33f3123f6eb1cf196e9bb-24bda9c7-1550a8f8")
 
-            response = requests.post(url, auth=auth, data=data, files=files)
-            print(response.status_code)
-            print("Response Status Code: ", response.json())
+        #     response = requests.post(url, auth=auth, data=data, files=files)
+        #     print(response.status_code)
+        #     print("Response Status Code: ", response.json())
 
         # Assign a default profile picture
 
@@ -330,6 +363,14 @@ def profile():
     return render_template("profile.html", current_user=user)
 
 
+@app.route("/pages", methods=["POST", "GET"])
+def pages():
+    pages = Page.query.all()
+    page_data = [page.to_dict()
+                 for page in pages]
+    return render_template("pages.html", page=page_data)
+
+
 @app.route("/admin_panel", methods=["GET", "POST"])
 def panel():
     novels = Novel.query.all()  # Fetch all novels from the database
@@ -368,7 +409,7 @@ def novel_list():
     return render_template("index.html", novels=novels_data, current_user=current_user, date=datetime.utcnow().strftime('%Y-%m-%d'))
 
 
-@app.route("/add_novel", methods=["POST"])
+@app.route("/add_novel", methods=["POST", "GET"])
 def add_novel():
     print(request.form)
     if request.method == "POST":
@@ -389,10 +430,10 @@ def add_novel():
                           genre=genre, description=description, cover_image=filename, theme=theme, publish_date=publish_date)
         db.session.add(new_novel)
         db.session.commit()
-    print(new_novel)
-    return jsonify(new_novel[0])
-    # return jsonify({"message": "Novel added successfully!", "novel_id": new_novel.novel_title})
-    # return render_template("add_novel.html")
+        print(new_novel)
+        # return jsonify(new_novel)
+        return jsonify({"message": "Novel added successfully!", "novel_id": new_novel.novel_title})
+    return render_template("admin_dashboard.html")
 
 
 @app.route('/search')
@@ -575,11 +616,6 @@ def unsave_novel(novel_id):
         db.session.delete(saved)
         db.session.commit()
     return jsonify(status="unsaved")
-
-
-@app.route("/about")
-def about():
-    return render_template("default_page.html", page_title="About Us")
 
 
 # Run the Flask app

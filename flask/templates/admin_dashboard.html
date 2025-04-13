@@ -13,13 +13,33 @@
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
+        <h1><a class="navbar-brand" href="{{ url_for('novel_list') }}">
+                <!-- Your SVG Logo -->
+                <!-- Consider reducing width/height here for mobile if it's too big -->
+                <svg width="150" height="60" viewBox="0 10 400 60" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="400" height="100" fill="#1e1e2e" rx="10" />
+                    <g transform="translate(20,20)">
+                        <rect x="10" y="10" width="40" height="60" fill="#f5deb3" stroke="#8b5a2b" stroke-width="3"
+                            rx="5" />
+                        <circle cx="10" cy="20" r="7" fill="#8b5a2b" />
+                        <circle cx="50" cy="20" r="7" fill="#8b5a2b" />
+                        <circle cx="10" cy="70" r="7" fill="#8b5a2b" />
+                        <circle cx="50" cy="70" r="7" fill="#8b5a2b" />
+                        <line x1="10" y1="20" x2="50" y2="20" stroke="#8b5a2b" stroke-width="3" />
+                        <line x1="10" y1="70" x2="50" y2="70" stroke="#8b5a2b" stroke-width="3" />
+                    </g>
+                    <text x="80" y="60" font-family="'Georgia', serif" font-size="50" fill="#f5deb3" font-weight="bold">
+                        Scroll Saga
+                    </text>
+                </svg>
+            </a></h1>
         <h2>Admin Panel</h2>
         <a href="{{url_for('novel_list')}}">🏠Home</a>
         <a href="{{url_for('panel')}}">📊 Dashboard</a>
         <a href="{{url_for('panel')}}">📚 Novels</a>
         <a href="{{url_for('users')}}">👥 Users</a>
         <a href="{{url_for('comments')}}">📝 Reviews</a>
-        <a href="#">⚙️ Settings</a>
+        <a href="{{url_for('pages')}}">⚙️ Settings</a>
     </div>
 
     <!-- Main Content -->
@@ -61,8 +81,8 @@
                 <textarea id="description" placeholder="Description"></textarea>
                 <input type="date" id="publishDate">
                 <input type="file" id="coverImage" accept="image/*">
-                <button type="button" onclick="addNovel()">Add Novel</button>
             </form>
+            <button type="button" onclick="addNovel()">Add Novel</button>
 
 
         </div>
@@ -110,22 +130,29 @@
 
         async function addNovel() {
             console.log("novel uploaded");
-            const formData = new FormData();
-            formData.append("novel_title", document.getElementById("novelTitle").value);
-            formData.append("author", document.getElementById("author").value);
-            formData.append("genre", document.getElementById("genre").value);
-            formData.append("theme", document.getElementById("theme").value);
-            formData.append("description", document.getElementById("description").value);
-            formData.append("publish_date", document.getElementById("publishDate").value);
-
-
+            let novel_title = document.getElementById("novelTitle").value;
+            let author = document.getElementById("author").value;
+            let genre = document.getElementById("genre").value;
+            let theme = document.getElementById("theme").value;
+            let description = document.getElementById("description").value;
+            let publish_date = document.getElementById("publish_date");
+            const formData = {
+                "novel_title": novel_title,
+                "author": author,
+                "genre": genre,
+                "theme": theme,
+                "description": description,
+                "publish_date": publish_date,
+            }
+            const response = await fetch(`/add_novel`, { method: "GET" });
+            const result = await response.json();
+            console.log("Added:", result);
         }
 
         async function deleteNovel(novel_id) {
             const response = await fetch(`/delete_novel/${novel_id}`, { method: "DELETE" });
             const result = await response.json();
             console.log("Deleted:", result);
-            getNovels(); // Refresh list after deletion
         }
 
 

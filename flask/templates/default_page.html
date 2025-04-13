@@ -9,7 +9,7 @@
     <title>{{page_title}}</title>
     <link rel="icon" type="image/png" href="static/images/saga_scroll.webp">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="static/css/styles.css" rel="stylesheet" type="text/css" />
+    <link href="/static/css/styles.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
@@ -64,9 +64,17 @@
                                 <ul class="navbar-nav ms-auto align-items-lg-center gap-2">
                                     <li class="nav-item"><a href="{{ url_for('novel_list') }}">Home</a>
                                     </li>
-                                    <li class="nav-item"><a href="#">About</a></li>
-                                    <li class="nav-item"><a href="#">Trending</a></li>
-                                    <li class="nav-item"><a href="#">Discovery</a></li>
+                                    <li class="nav-item"><a href="{{ url_for('show_page', slug='about') }}">About</a>
+                                    </li>
+                                    <li class="nav-item"><a
+                                            href="{{ url_for('show_page', slug='trending') }}">Trending</a>
+                                    </li>
+                                    <li class="nav-item"><a
+                                            href="{{ url_for('show_page', slug='discovery') }}">Discovery</a>
+                                    </li>
+                                    <li class="nav-item"><a href="{{ url_for('show_page', slug='saga_news') }}">Saga
+                                            News</a>
+                                    </li>
                                     <li class="nav-item"><a href="{{ url_for('panel') }}">Admin
                                             Panel</a></li>
 
@@ -280,7 +288,7 @@
 
             {% endblock %}
         </main>
-        <footer id="footer" class="row">
+        <footer id="footer" class="row" style="display: block;">
             <div class="col-sm-12 col-xs-12 navbar navbar-expand-lg bg-body-tertiary">
                 <ul class="container-fluid" style="list-style-type: none;">
                     <li class="nav-item"><a href="" class="nav nav-link" style="color: #f5deb3;">Our Policies |</a>

@@ -13,38 +13,39 @@
 
     </div> -->
 <!-- <a href="#" style="float: right;" class="btn btn-secondary">Login</a></button> -->
-<h1 class="text-center"> Ongoing</h1>
+<main>
+    <h1 class="text-center"> Ongoing</h1>
 
-<div class="row">
-    <div>
-        {% if novels %}
-        <div class="flex-cont">
-
-
-            {% for novel in novels %}
-            <div id="myDIV">
-                <img src="{{ url_for('static', filename='images/' + novel['cover_image']) }}" alt="Book Cover">
-                <h4 class="text-center">{{ novel["novel_title"] }}</h4>
-                <p>Novel Genre: {{ novel["genre"] }}</p>
-                <p>Description: <i>{{ novel["description"] }}</i></p>
-                <p>Author: <em>{{ novel["author"]}}</em></p>
-                <p><sub>Published Date: {{date}}</sub> </p>
-
-                <p class="text-center"><a href="/novel/{{novel['novel_id']}}/{{novel['novel_title']}}"
-                        class="btn btn-primary">Read
-                        Now!</a></p>
+    <div class="row">
+        <div>
+            {% if novels %}
+            <div class="flex-cont">
 
 
+                {% for novel in novels %}
+                <div id="myDIV">
+                    <img src="{{ url_for('static', filename='images/' + novel['cover_image']) }}" alt="Book Cover">
+                    <h4 class="text-center">{{ novel["novel_title"] }}</h4>
+                    <p>Novel Genre: {{ novel["genre"] }}</p>
+                    <p>Description: <i>{{ novel["description"] }}</i></p>
+                    <p>Author: <em>{{ novel["author"]}}</em></p>
+                    <p><sub>Published Date: {{date}}</sub> </p>
+
+                    <p class="text-center"><a href="/novel/{{novel['novel_id']}}/{{novel['novel_title']}}"
+                            class="btn btn-primary">📖 Read
+                            Now!</a></p>
+
+
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+            {% else %}
+            <p>No novels uploaded yet.</p>
+            {% endif %}
+
         </div>
-        {% else %}
-        <p>No novels uploaded yet.</p>
-        {% endif %}
 
     </div>
-
-</div>
 </main>
 
 

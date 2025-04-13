@@ -2,12 +2,12 @@
 {% block content %}
 <link rel="icon" type="image/png" href="static/images/saga_scroll.webp">
 
-<main class="col-sm-12 col-xs-12 main main-expand-lg bg-body-tertiary">
+<main class="container py-4 bg-body-tertiary">
     {% if "username" in session %}
-    <div class="card bg-dark mb-3" style="margin: auto; max-width: 100rem;">
+    <div class="card bg-dark mb-3 mx-auto" style="max-width: 100rem;">
         <div class="card mb-3">
-            <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}" class="round-circle"
-                alt="Book Cover" style="width: 200px; height: 200px; margin: 25px 43%;">
+            <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}"
+                class="rounded-circle d-block mx-auto mt-3" alt="Book Cover" style="width: 200px; height: 200px;">
             <div class="card-body">
                 <h2 class="card-title text-center"><strong>{{ novel.novel_title }}</strong></h2>
                 <p class="card-text text-muted">Description: <i>{{ novel.description }}</i></p>
@@ -20,120 +20,77 @@
                 </button>
 
                 <!-- Chapter Section -->
-                <div class="chapter-content" id="chapterText">
+                {% if chapter %}
+                <div class="chapter-content mt-4" id="chapterText">
                     <h3 class="text-center" id="chapterTitle">{{ chapter.chapter_name }}</h3>
                     <p id="chapterContent">{{ chapter.content }}</p>
 
                     <div class="d-flex justify-content-between">
-                        {% if chapter %}
                         <button id="previousBtn" class="btn btn-secondary"
-                            data-previous-id="{{ chapter.chapter_number - 1}}">Previous</button>
+                            data-previous-id="{{ chapter.chapter_number - 1 }}">Previous</button>
                         <button id="nextBtn" class="btn btn-primary"
-                            data-next-id="{{chapter.chapter_number + 1}}">Next</button>
-                        {% endif %}
+                            data-next-id="{{ chapter.chapter_number + 1 }}">Next</button>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Reviews Section -->
-        <div class="container">
-            <h3>Reviews & Comments</h3>
-            {% if reviews %}
-            {% for review in reviews %}
-            <div class="review">
-                <p>
-                    <img src="{{ url_for('static', filename='images/' + review.profile_photo) }}" alt="Profile Photo"
-                        class="rounded-circle me-2" style="width: 40px; height: 40px;">
-                    <strong style="color: #f5deb3;">{{ review.username }}</strong>
-                </p>
-                <p style="color: #f5deb3;">{{ review.review_text }}</p>
-                <p style="color: #f5deb3;"><sub>{{ review.publish_time }}</sub></p>
-            </div>
-            {% endfor %}
-            {% else %}
-            <p>No reviews yet. Be the first to comment!</p>
-            {% endif %}
-
-            <!-- Comment Form -->
-            <div class="card mt-4">
-                <div class="card-body">
-                    <h5 class="card-title">Add a Comment</h5>
-                    <form method="POST">
-                        <div class="form-group">
-                            <label for="content">Your Comment:</label>
-                            <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
-                    </form>
-                </div>
+                {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- Reviews Section -->
+    <div class="container mt-5">
+        <h3>Reviews & Comments</h3>
+        {% if reviews %}
+        <div class="reviews-container">
+            {% for review in reviews %}
+            <div class="review mb-4 p-3 bg-light rounded">
+                <div class="d-flex align-items-center mb-1">
+                    <img src="{{ url_for('static', filename='images/' + review.profile_photo) }}" alt="Profile Photo"
+                        class="rounded-circle me-2" style="width: 40px; height: 40px;">
+                    <strong>{{ review.username }}</strong>
+                </div>
+                <p class="mb-1">{{ review.review_text }}</p>
+                <p class="mb-0"><sub class="text-muted">{{ review.publish_time }}</sub></p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No reviews yet. Be the first to comment!</p>
+        {% endif %}
+
+        <!-- Comment Form -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Add a Comment</h5>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="content">Your Comment:</label>
+                        <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {% else %}
     <p>
-        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#loginModal">
-            Login
-        </button>
+        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
         to read the novel and add a comment.
     </p>
     {% endif %}
 </main>
 
-<!-- Styles -->
-<style>
-    .nav-item a:hover {
-        background-color: #1e1e2e;
-        border-radius: 5px;
-    }
+<!-- Optional Bootstrap JS (only if not in base template) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    a {
-        color: #f5deb3;
-        text-decoration: none;
-        margin: 3px 10px;
-    }
-
-    nav,
-    #footer {
-        background-color: #8b5a2b;
-    }
-
-    main {
-        background-color: #f5deb3;
-    }
-
-    li {
-        color: black;
-    }
-
-    #myDIV>p {
-        color: #f5deb3;
-    }
-
-    h4,
-    h3 {
-        color: #8b5a2b;
-    }
-
-    img {
-        height: auto;
-        width: 20%;
-    }
-
-    label>p {
-        color: black;
-    }
-</style>
-
-<!-- Scripts -->
 <script>
     document.querySelectorAll(".save-btn").forEach(button => {
         button.addEventListener("click", () => {
             const novelId = button.getAttribute("data-novel-id");
 
-            fetch(`/save_novel/${novelId}`, {
-                method: "POST"
-            }).then(res => res.json())
+            fetch(`/save_novel/${novelId}`, { method: "POST" })
+                .then(res => res.json())
                 .then(data => {
                     if (data.status === "saved") {
                         button.textContent = "✅ Add to Booklist";
@@ -191,9 +148,66 @@
         if (nextId) loadChapter(nextId);
     });
 
-    // Load current chapter on page load
-    loadChapter(currentChapterId);
+    function formatChapterContent(content) {
+        // Split into paragraphs and wrap each in <p> tags
+        return content.split('\n').map(line => `<p>${line.trim()}</p>`).join('');
+    }
 
+    function loadChapter(chapterId) {
+        fetch(`/chapter/${novelId}/${chapterId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
 
+                chapterTitle.textContent = data.chapter_name;
+                chapterText.innerHTML = formatChapterContent(data.content); // changed here!
+
+                currentChapterId = chapterId;
+
+                if (data.previous_id !== null) {
+                    previousBtn.style.display = 'inline-block';
+                    previousBtn.setAttribute("data-id", data.previous_id);
+                } else {
+                    previousBtn.style.display = 'none';
+                }
+
+                if (data.next_id !== null) {
+                    nextBtn.style.display = 'inline-block';
+                    nextBtn.setAttribute("data-id", data.next_id);
+                } else {
+                    nextBtn.style.display = 'none';
+                }
+            });
+    }
 </script>
+<style>
+    .chapter-content {
+        background-color: #fdfcfb;
+        padding: 20px;
+        border-radius: 12px;
+        margin: 20px auto;
+        max-width: 800px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        line-height: 1.8;
+        font-family: 'Georgia', serif;
+    }
+
+    .chapter-content h3 {
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-align: center;
+        color: #4b2e83;
+    }
+
+    .chapter-content p {
+        text-indent: 2em;
+        margin-bottom: 1em;
+        font-size: 1.05em;
+        color: #1f1f1f;
+    }
+</style>
+
 {% endblock %}
