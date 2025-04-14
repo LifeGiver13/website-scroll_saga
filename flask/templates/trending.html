@@ -1,10 +1,36 @@
-{% extends "default_page.html" %}
-{% block content %}
-<!-- discovery.html -->
+{%extends "default_page.html" %}
+{%block content%}
 <h1 class="text-center">{{ page.title}}</h1>
-{%if novel%}
-{%for novel in novels%}
-<div style="margin: 5px;" class="row">{{ page.content|safe }}</div>
-{%endfor%}
-{%endif%}
-{% endblock %}
+
+<div class="row">
+    <div>
+        {% if novels %}
+        <div class="flex-cont">
+
+
+            {% for novel in novels %}
+            <div id="myDIV">
+                <img src="{{ url_for('static', filename='images/' + novel['cover_image']) }}" alt="Book Cover">
+                <h4 class="text-center">{{ novel["novel_title"] }}</h4>
+                <p>Novel Genre: {{ novel["genre"] }}</p>
+                <p>Description: <i>{{ novel["description"] }}</i></p>
+                <p>Author: <em>{{ novel["author"]}}</em></p>
+                <p><sub>Published Date: {{date}}</sub> </p>
+
+                <p class="text-center"><a href="/novel/{{novel['novel_id']}}/{{novel['novel_title']}}"
+                        class="btn btn-primary">📖 Read
+                        Now!</a></p>
+
+
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No novels uploaded yet.</p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{%endblock%}

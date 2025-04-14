@@ -39,7 +39,7 @@
 
     <!-- Reviews Section -->
     <div class="container mt-5">
-        <h3>Reviews & Comments</h3>
+        <h3 style="background-color:  #8b5a2b; border-radius: 10px;">Reviews & Comments</h3>
         {% if reviews %}
         <div class="reviews-container">
             {% for review in reviews %}
@@ -100,7 +100,6 @@
                 });
         });
     });
-
     const chapterTitle = document.getElementById('chapterTitle');
     const chapterText = document.getElementById('chapterContent');
     const previousBtn = document.getElementById('previousBtn');
@@ -109,47 +108,8 @@
     let currentChapterId = parseInt(`{{ chapter.chapter_number }}`);
     const novelId = parseInt(`{{ novel.novel_id }}`);
 
-    function loadChapter(chapterId) {
-        fetch(`/chapter/${novelId}/${chapterId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                    return;
-                }
-
-                chapterTitle.textContent = data.chapter_name;
-                chapterText.textContent = data.content;
-                currentChapterId = chapterId;
-
-                if (data.previous_id !== null) {
-                    previousBtn.style.display = 'inline-block';
-                    previousBtn.setAttribute("data-id", data.previous_id);
-                } else {
-                    previousBtn.style.display = 'none';
-                }
-
-                if (data.next_id !== null) {
-                    nextBtn.style.display = 'inline-block';
-                    nextBtn.setAttribute("data-id", data.next_id);
-                } else {
-                    nextBtn.style.display = 'none';
-                }
-            });
-    }
-
-    previousBtn.addEventListener("click", () => {
-        const prevId = previousBtn.getAttribute("data-id");
-        if (prevId) loadChapter(prevId);
-    });
-
-    nextBtn.addEventListener("click", () => {
-        const nextId = nextBtn.getAttribute("data-id");
-        if (nextId) loadChapter(nextId);
-    });
-
+    // Define this function BEFORE it's called in loadChapter
     function formatChapterContent(content) {
-        // Split into paragraphs and wrap each in <p> tags
         return content.split('\n').map(line => `<p>${line.trim()}</p>`).join('');
     }
 
@@ -163,25 +123,37 @@
                 }
 
                 chapterTitle.textContent = data.chapter_name;
-                chapterText.innerHTML = formatChapterContent(data.content); // changed here!
-
+                chapterText.innerHTML = formatChapterContent(data.content); // <-- now it works!
                 currentChapterId = chapterId;
 
                 if (data.previous_id !== null) {
                     previousBtn.style.display = 'inline-block';
-                    previousBtn.setAttribute("data-id", data.previous_id);
+                    previousBtn.setAttribute("data-previous-id", data.previous_id);
                 } else {
                     previousBtn.style.display = 'none';
                 }
 
                 if (data.next_id !== null) {
                     nextBtn.style.display = 'inline-block';
-                    nextBtn.setAttribute("data-id", data.next_id);
+                    nextBtn.setAttribute("data-next-id", data.next_id);
                 } else {
                     nextBtn.style.display = 'none';
                 }
             });
     }
+
+    previousBtn.addEventListener("click", () => {
+        const prevId = previousBtn.getAttribute("data-previous-id");
+        if (prevId) loadChapter(prevId);
+    });
+
+    nextBtn.addEventListener("click", () => {
+        const nextId = nextBtn.getAttribute("data-next-id");
+        if (nextId) loadChapter(nextId);
+    });
+
+    // Kick things off
+    loadChapter(currentChapterId);
 </script>
 <style>
     .chapter-content {

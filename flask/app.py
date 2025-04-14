@@ -172,16 +172,35 @@ class Chapters(db.Model):
 
 @app.route('/<slug>')
 def show_page(slug):
-    novels = Novel.query.all()  # Fetch all novels from the database
-    novels_data = [novel.to_dict()
-                   for novel in novels]  # Convert to dictionaries
-    current_user = None
-    if 'username' in session:
-        current_user = Users.query.filter_by(
-            username=session['username']).first()
-
+    novels = Novel.query.all()
     page = Page.query.filter_by(slug=slug).first_or_404()
-    return render_template(f'{slug}.html', page=page, novels=novels_data, current_user=current_user, date=datetime.utcnow().strftime('%Y-%m-%d'))
+    return render_template(f'{slug}.html', page=page, novels=novels)
+
+
+@app.route("/pages", methods=["POST", "GET"])
+def pages():
+    pages = Page.query.all()
+    page_data = [page.to_dict()
+                 for page in pages]
+    return render_template("pages.html", page=page_data)
+
+
+@app.route('/pages/<int:page_id>/update', methods=['PUT'])
+def update_page(page_id):
+    data = request.get_json()
+
+    page = Page.query.get(page_id)
+    if not page:
+        return jsonify({'error': 'Page not found'}), 404
+
+    page.slug = data.get('slug', page.slug)
+    page.title = data.get('title', page.title)
+    page.content = data.get('content', page.content)
+    page.image_filename = data.get('image_filename', page.image_filename)
+
+    db.session.commit()
+
+    return jsonify({'success': True})
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -361,14 +380,6 @@ def update_profile():
 def profile():
     user = Users.query.filter_by(username=session['username']).first()
     return render_template("profile.html", current_user=user)
-
-
-@app.route("/pages", methods=["POST", "GET"])
-def pages():
-    pages = Page.query.all()
-    page_data = [page.to_dict()
-                 for page in pages]
-    return render_template("pages.html", page=page_data)
 
 
 @app.route("/admin_panel", methods=["GET", "POST"])

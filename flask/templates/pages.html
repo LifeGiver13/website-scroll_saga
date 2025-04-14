@@ -13,22 +13,55 @@
                 <th>Action</th>
             </tr>
         </thead>
-        <tbody>
-            {% for data in page %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ data['slug'] }}</td>
-                <td>{{ data['title'] }}</td>
-                <td>{{ data['content'] }}</td>
-                <td>{{data['image_filename']}}</td>
-                <td>
-                    <form action="" method="Put">
-                        <button type="submit" class="btn btn-sm btn-warning">Update</button>
-                    </form>
-                </td>
+        {% for data in page %}
+
+        <tbody id="pagesTableBody">
+            <!-- Example row -->
+            <tr data-page-id="{{ data.page_id }}">
+                <td>{{ data.id }}</td>
+                <td><input type="text" class="slugInput" value="{{ data.slug }}"></td>
+                <td><input type="text" class="titleInput" value="{{ data.title }}"></td>
+                <td><textarea class="contentInput">{{ data.content }}</textarea></td>
+                <td><input type="text" class="imageInput" value="{{ data.image_filename }}"></td>
+                <td><button class="btn btn-warning updatePageBtn">Update</button></td>
             </tr>
-            {% endfor %}
         </tbody>
+        {% endfor %}
     </table>
 </div>
+<script>
+    document.querySelectorAll('.updatePageBtn').forEach(button => {
+        button.addEventListener('click', () => {
+            const row = button.closest('tr');
+            const pageId = row.getAttribute('data-page-id');
+
+            const slug = row.querySelector('.slugInput').value.trim();
+            const title = row.querySelector('.titleInput').value.trim();
+            const content = row.querySelector('.contentInput').value.trim();
+            const image_filename = row.querySelector('.imageInput').value.trim();
+
+            fetch(`/pages/${pageId}/update`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    slug,
+                    title,
+                    content,
+                    image_filename
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Page updated!');
+                    } else {
+                        alert(data.error || 'Update failed');
+                    }
+                });
+        });
+    });
+</script>
+
 {%endblock%}
