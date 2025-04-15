@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import pymysql
 import os
+import base64
 import json  # Required for SQLAlchemy MySQL connection
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -205,140 +206,134 @@ def update_page(page_id):
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("loginPassword")
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
 
-        user = Users.query.filter_by(username=username).first()
+    user = Users.query.filter_by(username=username).first()
 
-        if user and check_password_hash(user.password, password):
-            session["user_id"] = user.user_id
-            session["username"] = user.username
-            flash(f"Welcome, {user.username}!", "success")
-            return redirect(url_for("novel_list"))
-        else:
-            flash("Invalid username or password", "danger")
+    if user and check_password_hash(user.password, password):
+        session["user_id"] = user.user_id
+        session["username"] = user.username
+        return jsonify({"status": "success", "message": f"Welcome, {user.username}!"})
 
-    return redirect(url_for("novel_list"))  # Reload the homepage
+    return jsonify({"status": "danger", "message": "Invalid username or password."}), 401
 
 
 @app.route("/register", methods=["POST", "GET"])
 def register():
-    if request.method == "POST":
-        username = request.form.get("registerUsername")
-        email = request.form.get("registerEmail")
-        password = request.form.get("registerPassword")
-        confirm_password = request.form.get("confirmPassword")
-        fileName = request.files.get('profile')
-        user_bio = request.form.get("user_bio")
-        # Check if passwords match
-        if password != confirm_password:
-            flash("Passwords do not match. Please try again.", "danger")
-            return redirect(url_for("novel_list"))
+    data = request.get_json()
+    username = data.get("username")
+    email = data.get("email")
+    password = data.get("password")
+    confirm_password = data.get("confirm_password")
+    user_bio = data.get("bio")
+    profile_base64 = data.get("profile_photo")
 
-        # Check if the email already exists
-        existing_email = Users.query.filter_by(email_address=email).first()
-        if existing_email:
-            flash("Email already exists. Please log in.", "warning")
-            return redirect(url_for("login"))
+    # Validations
+    if not all([username, email, password, confirm_password]):
+        return jsonify({"status": "danger", "message": "Please fill in all required fields."}), 400
 
-        # Check if the username already exists
-        existing_username = Users.query.filter_by(username=username).first()
-        if existing_username:
-            flash("Username already taken. Please choose another one.", "warning")
-            return redirect(url_for("register"))
+    if password != confirm_password:
+        return jsonify({"status": "danger", "message": "Passwords do not match."}), 400
 
-        # Default profile photo
-        profile_photo_filename = "default.png"
+    if Users.query.filter_by(username=username).first():
+        return jsonify({"status": "danger", "message": "Username already taken."}), 400
 
-        # If a file was uploaded and it's not empty
-        if fileName and fileName.filename != '':
-            # Save the file to your uploads directory (adjust the path if needed)
-            upload_folder = os.path.join(
-                app.root_path, 'static/images')
-            # Ensure the folder exists
-            os.makedirs(upload_folder, exist_ok=True)
-            file_path = os.path.join(upload_folder, fileName.filename)
-            fileName.save(file_path)
+    if Users.query.filter_by(email_address=email).first():
+        return jsonify({"status": "danger", "message": "Email already registered."}), 400
 
-            profile_photo_filename = fileName.filename
+    # Handle profile photo (optional)
+    profile_photo_filename = "default.png"
+    if profile_base64:
+        try:
+            # Extract actual image data
+            header, encoded = profile_base64.split(",", 1)
+            # image/png, image/jpeg etc.
+            ext = header.split("/")[1].split(";")[0]
+            image_data = base64.b64decode(encoded)
+            timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+            profile_photo_filename = f"{username}_{timestamp}.{ext}"
+            image_path = os.path.join(
+                app.root_path, 'static/images', profile_photo_filename)
+            os.makedirs(os.path.dirname(image_path), exist_ok=True)
 
-        # Hash the password
-        hashed_password = generate_password_hash(
-            password, method="pbkdf2:sha256")
+            with open(image_path, "wb") as f:
+                f.write(image_data)
+        except Exception as e:
+            return jsonify({"status": "danger", "message": "Invalid profile image."}), 400
 
-        # files = []
-        # if fileName and fileName.filename != '':
-        #     files.append(
-        #         ("inline", (fileName.filename, fileName.stream, fileName.mimetype)))
-        #     print(files)
-        #     url = "https://api.mailgun.net/v3/sandbox731194d37470413e8c548a52a345d7c7.mailgun.org/messages"
+    # Create new user
+    hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+    # files = []
+    # if fileName and fileName.filename != '':
+    #     files.append(
+    #         ("inline", (fileName.filename, fileName.stream, fileName.mimetype)))
+    #     print(files)
+    #     url = "https://api.mailgun.net/v3/sandbox731194d37470413e8c548a52a345d7c7.mailgun.org/messages"
 
-        #     data = {
-        #         "from": "WIMHouse@sandbox731194d37470413e8c548a52a345d7c7.mailgun.org",
-        #         "to": [email],
-        #         "subject": "Welcome to WIM House(Info from the API)",
-        #         "html": f"""
-        # <html>
-        # <body style="margin: 0; padding: 0; background-color: #f3e5ab;">
-        #     <div style="
-        #         max-width: 600px;
-        #         margin: 30px auto;
-        #         padding: 40px;
-        #         background-image: url('https://sdmntprwestus.oaiusercontent.com/files/00000000-47c4-5230-affb-aedb600b6668/raw?se=2025-04-06T22%3A51%3A35Z&sp=r&sv=2024-08-04&sr=b&scid=e37f039a-0900-5c20-900b-a7f5f8a2410d&skoid=de76bc29-7017-43d4-8d90-7a49512bae0f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-06T07%3A09%3A14Z&ske=2025-04-07T07%3A09%3A14Z&sks=b&skv=2024-08-04&sig=2QAzqOu8VcmLgFDBer5LwdvDHM58KQG6CBTw5%2BX/WEo%3D'); /* placeholder parchment image */
-        #         background-size: cover;
-        #         background-repeat: no-repeat;
-        #         background-position: center;
-        #         border: 10px solid #a87c4f;
-        #         border-radius: 20px;
-        #         font-family: 'Georgia', serif;
-        #         color: #4b3621;
-        #         box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-        #     ">
-        #         <h1 style="text-align: center; font-size: 28px;">📜 Welcome to Scroll Saga 📜</h1>
-        #         <p style="font-size: 18px; line-height: 1.6;">
-        #             Dear <strong>{username}</strong>,<br><br>
-        #             You have been chosen to embark on a sacred journey through the realms of imagination.
-        #             The Novel World awaits you — a haven where reality fades and fantasy thrives.
-        #         </p>
-        #         <p style="font-size: 18px; line-height: 1.6;">
-        #             Read stories, support the writers, and help bring these worlds to life — maybe even on screen one day! ✨
-        #         </p>
-        #         <p style="font-size: 18px; line-height: 1.6;">
-        #             Here is your uploaded Profile photo (if any) and your passport to this otherworldly domain.
-        #         </p>
-        #         <p style="font-size: 16px; text-align: right;">- The WIM House Guild</p>
-        #     </div>
-        # </body>
-        # </html>
-        # """,
-        #     }
-        #     files = files
-        #     auth = ("api", "04e7193703a33f3123f6eb1cf196e9bb-24bda9c7-1550a8f8")
+    #     data = {
+    #         "from": "WIMHouse@sandbox731194d37470413e8c548a52a345d7c7.mailgun.org",
+    #         "to": [email],
+    #         "subject": "Welcome to WIM House(Info from the API)",
+    #         "html": f"""
+    # <html>
+    # <body style="margin: 0; padding: 0; background-color: #f3e5ab;">
+    #     <div style="
+    #         max-width: 600px;
+    #         margin: 30px auto;
+    #         padding: 40px;
+    #         background-image: url('https://sdmntprwestus.oaiusercontent.com/files/00000000-47c4-5230-affb-aedb600b6668/raw?se=2025-04-06T22%3A51%3A35Z&sp=r&sv=2024-08-04&sr=b&scid=e37f039a-0900-5c20-900b-a7f5f8a2410d&skoid=de76bc29-7017-43d4-8d90-7a49512bae0f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-06T07%3A09%3A14Z&ske=2025-04-07T07%3A09%3A14Z&sks=b&skv=2024-08-04&sig=2QAzqOu8VcmLgFDBer5LwdvDHM58KQG6CBTw5%2BX/WEo%3D'); /* placeholder parchment image */
+    #         background-size: cover;
+    #         background-repeat: no-repeat;
+    #         background-position: center;
+    #         border: 10px solid #a87c4f;
+    #         border-radius: 20px;
+    #         font-family: 'Georgia', serif;
+    #         color: #4b3621;
+    #         box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    #     ">
+    #         <h1 style="text-align: center; font-size: 28px;">📜 Welcome to Scroll Saga 📜</h1>
+    #         <p style="font-size: 18px; line-height: 1.6;">
+    #             Dear <strong>{username}</strong>,<br><br>
+    #             You have been chosen to embark on a sacred journey through the realms of imagination.
+    #             The Novel World awaits you — a haven where reality fades and fantasy thrives.
+    #         </p>
+    #         <p style="font-size: 18px; line-height: 1.6;">
+    #             Read stories, support the writers, and help bring these worlds to life — maybe even on screen one day! ✨
+    #         </p>
+    #         <p style="font-size: 18px; line-height: 1.6;">
+    #             Here is your uploaded Profile photo (if any) and your passport to this otherworldly domain.
+    #         </p>
+    #         <p style="font-size: 16px; text-align: right;">- The WIM House Guild</p>
+    #     </div>
+    # </body>
+    # </html>
+    # """,
+    #     }
+    #     files = files
+    #     auth = ("api", "04e7193703a33f3123f6eb1cf196e9bb-24bda9c7-1550a8f8")
 
-        #     response = requests.post(url, auth=auth, data=data, files=files)
-        #     print(response.status_code)
-        #     print("Response Status Code: ", response.json())
+    #     response = requests.post(url, auth=auth, data=data, files=files)
+    #     print(response.status_code)
+    #     print("Response Status Code: ", response.json())
 
-        # Assign a default profile picture
+    # Assign a default profile picture
 
-        # Create a new user
-        new_user = Users(
-            username=username,
-            email_address=email,
-            password=hashed_password,
-            role="user",
-            profile_photo=profile_photo_filename,
-            # Set default image
-            # Change from "None" (string) to actual None (NULL in database)
-            user_bio=user_bio
-        )
+    # Create a new user
+    new_user = Users(
+        username=username,
+        email_address=email,
+        password=hashed_password,
+        role="user",
+        profile_photo=profile_photo_filename,
+        user_bio=user_bio
+    )
+    db.session.add(new_user)
+    db.session.commit()
 
-        flash("Registration successful! Please log in.", "success")
-        db.session.add(new_user)
-        db.session.commit()
+    return jsonify({"status": "success", "message": "Registration successful! Please log in."})
 
-    return redirect(url_for("novel_list"))
 # Logout Route
 
 

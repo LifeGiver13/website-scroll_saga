@@ -83,7 +83,7 @@
                                         <form class="d-flex" action="{{ url_for('search') }}" method="GET">
                                             <input class="form-control me-2" type="search" name="query"
                                                 placeholder="Search" required>
-                                            <button class="btn btn-outline-light" type="submit">Search</button>
+                                            <button class="btn btn-outline-dark" type="submit">Search</button>
                                         </form>
                                     </li>
 
@@ -125,10 +125,11 @@
                                         </ul>
                                         {% else %}
                                         <div class="d-flex gap-2">
-                                            <button class="btn btn-outline-light" data-bs-toggle="modal"
-                                                data-bs-target="#loginModal">Login</button>
-                                            <button class="btn btn-primary" data-bs-toggle="modal"
-                                                data-bs-target="#registerModal">Register</button>
+                                            <a class="btn btn-outline-primary" data-bs-toggle="modal"
+                                                data-bs-target="#loginModal">Login</a>
+                                            <a class="btn btn-outline-success" data-bs-toggle="modal"
+                                                data-bs-target="#registerModal">Register</a>
+
                                         </div>
                                         {% endif %}
                                     </li>
@@ -136,48 +137,32 @@
                             </div>
                         </div>
                     </nav>
+                    <!-- Toast Container -->
+                    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+                        <div id="toastContainer" class="toast-container"></div>
+                    </div>
+
 
                     <!-- Login Modal -->
                     <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel"
                         aria-hidden="true">
                         <div class="modal-dialog">
-                            <div class="modal-content">
+                            <div class="modal-content" style="background-color: #d8a16d;">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="loginModalLabel">
-                                        {% if session['username'] %}
-                                        Welcome, {{ session['username'] }}!
-                                        {% else %}
-                                        Login
-                                        {% endif %}
-                                    </h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                        aria-label="Close"></button>
+                                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
-                                    {% with messages = get_flashed_messages(with_categories=true) %}
-                                    {% if messages %}
-                                    {% for category, message in messages %}
-                                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                                    {% endfor %}
-                                    {% endif %}
-                                    {% endwith %}
-
-                                    {% if session['username'] %}
-                                    <p class="text-center">You are already logged in.</p>
-                                    <a href="{{ url_for('logout') }}" class="btn btn-danger w-100">Logout</a>
-                                    {% else %}
-                                    <form method="post" action="{{ url_for('login') }}">
-                                        <div class="mb-3">
-                                            <label for="username" class="form-label">Username</label>
-                                            <input type="text" class="form-control" name="username" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="loginPassword" class="form-label">Password</label>
-                                            <input type="password" class="form-control" name="loginPassword" required>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary w-100">Login</button>
-                                    </form>
-                                    {% endif %}
+                                    <div class="mb-3">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="loginUsername" required />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Password</label>
+                                        <input type="password" class="form-control" id="loginPassword" required />
+                                    </div>
+                                    <button class="btn w-100" style="background-color:#f5deb3; border:1px solid #333;"
+                                        onclick="handleLogin()">Login</button>
                                 </div>
                             </div>
                         </div>
@@ -187,60 +172,38 @@
                     <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
                         aria-hidden="true">
                         <div class="modal-dialog">
-                            <div class="modal-content">
+                            <div class="modal-content" style="background-color: #f5deb3;">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="registerModalLabel">Register</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                        aria-label="Close"></button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
-                                    {% with messages = get_flashed_messages(with_categories=true) %}
-                                    {% if messages %}
-                                    {% for category, message in messages %}
-                                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                                    {% endfor %}
-                                    {% endif %}
-                                    {% endwith %}
-
-                                    <form method="post" action="{{ url_for('register') }}"
-                                        enctype="multipart/form-data">
-                                        <div class="mb-3">
-                                            <label for="registerUsername" class="form-label">Username</label>
-                                            <input type="text" class="form-control" name="registerUsername" required>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="registerEmail" class="form-label">Email
-                                                Address</label>
-                                            <input type="email" class="form-control" name="registerEmail" required>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="profile" class="form-label">Profile Photo
-                                            </label>
-                                            <input type="file" class="form-control" name="profile">
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="registerPassword" class="form-label">Password</label>
-                                            <input type="password" class="form-control" name="registerPassword"
-                                                required>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="confirmPassword" class="form-label">Confirm
-                                                Password</label>
-                                            <input type="password" class="form-control" name="confirmPassword" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="user_bio" class="form-label">User Bio
-                                                <textarea name="user_bio" class="form-control"
-                                                    placeholder="Please enter a boigraphy(Optional)"></textarea>
-                                            </label>
-                                        </div>
-
-                                        <button type="submit" class="btn btn-success w-100">Register</button>
-                                    </form>
+                                    <div class="mb-3">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="registerUsername" required />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="registerEmail" required />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Password</label>
+                                        <input type="password" class="form-control" id="registerPassword" required />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Confirm Password</label>
+                                        <input type="password" class="form-control" id="confirmPassword" required />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Bio</label>
+                                        <textarea class="form-control" id="user_bio"></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Profile Photo</label>
+                                        <input type="file" class="form-control" id="profilePhoto" accept="image/*" />
+                                    </div>
+                                    <button class="btn w-100" style="background-color:#d8a16d; border:1px solid #333;"
+                                        onclick="handleRegister()">Register</button>
                                 </div>
                             </div>
                         </div>
@@ -306,6 +269,73 @@
         </footer>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            function showToast(message, type = 'info') {
+                const toastId = "toast" + Math.random().toString(36).substring(2);
+                const toast = `
+            <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+              <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+              </div>
+            </div>`;
+                document.getElementById("toastContainer").insertAdjacentHTML("beforeend", toast);
+                const bsToast = new bootstrap.Toast(document.getElementById(toastId));
+                bsToast.show();
+            }
+
+            async function handleLogin() {
+                const username = document.getElementById("loginUsername").value;
+                const password = document.getElementById("loginPassword").value;
+
+                const response = await fetch("/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const result = await response.json();
+                showToast(result.message, result.status === "success" ? "success" : "danger");
+                if (result.status === "success") {
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }
+
+            async function handleRegister() {
+                const username = document.getElementById("registerUsername").value;
+                const email = document.getElementById("registerEmail").value;
+                const password = document.getElementById("registerPassword").value;
+                const confirm = document.getElementById("confirmPassword").value;
+                const bio = document.getElementById("user_bio").value;
+                const file = document.getElementById("profilePhoto").files[0];
+
+                let base64Photo = null;
+                if (file) {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    await new Promise(resolve => reader.onload = resolve);
+                    base64Photo = reader.result;
+                }
+
+                const response = await fetch("/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username, email, password, confirm_password: confirm, bio, profile_photo: base64Photo
+                    })
+                });
+
+                const result = await response.json();
+                showToast(result.message, result.status === "success" ? "success" : "danger");
+
+                if (result.status === "success") {
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }
+        </script>
+
+
+
     </div>
 </body>
 
