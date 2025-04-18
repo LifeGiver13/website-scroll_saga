@@ -1,0 +1,254 @@
+{%extends "admin_dashboard.html"%}
+{%block content%}
+<h2 class="mt-4">Recent Chapters</h2>
+
+<div class="table-container table-responsive">
+    <p><button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#uploadChapterModal">
+            + Upload New Chapter
+        </button></p>
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Chapter Id</th>
+                <th>Novel Id</th>
+                <th>Novel name</th>
+                <th>Chapter Name</th>
+                <th>Chapter Content</th>
+                <th>Chapter Number</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for chapter in chapters %}
+            <tr data-id="{{ chapter['chapter_id'] }}" data-novel-id="{{ chapter['novel_id'] }}"
+                data-novel-title="{{ chapter['novel_title'] }}">
+                <td>{{ loop.index }}</td>
+                <td>{{ chapter["chapter_id"] }}</td>
+                <td>{{ chapter["novel_id"] }}</td>
+                <td>{{ chapter["novel_title"] }}</td>
+                <td>{{ chapter["chapter_name"] }}</td>
+                <td>{{ chapter["content"]}}</td>
+                <td>{{ chapter["chapter_number"] }}</td>
+
+                <td>
+                    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                        data-bs-target="#editChapterModal" onclick="editChapter(`{{chapter['chapter_id']}}`)">
+                        Update
+                    </button>
+
+
+                </td>
+
+
+
+
+
+            </tr> {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    <!-- Edit Chapter Modal -->
+    <div class="modal fade" id="editChapterModal" tabindex="-1" aria-labelledby="editChapterModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editChapterModalLabel">Edit Chapter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editChapterForm">
+                        <input type="hidden" id="chapterId">
+                        <div class="mb-3">
+                            <label for="novel_id" class="form-label">Novel ID</label>
+                            <input type="text" class="form-control" id="novel_id" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="novel_title" class="form-label">Novel Name</label>
+                            <input type="text" class="form-control" id="novel_title" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="chapterName" class="form-label">Chapter Name</label>
+                            <input type="text" class="form-control" id="chapterName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="chapterContent" class="form-label">Chapter Content</label>
+                            <textarea id="chapterContent" class="form-control"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="chapterNumber" class="form-label">Chapter Number</label>
+                            <input type="number" class="form-control" id="chapterNumber" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveChapterChanges">
+                        Save changes
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Upload Chapter Modal -->
+    <div class="modal fade" id="uploadChapterModal" tabindex="-1" aria-labelledby="uploadChapterModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload New Chapter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadChapterForm">
+                        <div class="mb-3">
+                            <label for="uploadNovelId" class="form-label">Novel ID</label>
+                            <input type="text" class="form-control" id="uploadNovelId" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="uploadNovelTitle" class="form-label">Novel Title</label>
+                            <input type="text" class="form-control" id="uploadNovelTitle" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="uploadChapterName" class="form-label">Chapter Name</label>
+                            <input type="text" class="form-control" id="uploadChapterName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="uploadChapterContent" class="form-label">Chapter Content</label>
+                            <textarea class="form-control" id="uploadChapterContent" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="uploadChapterNumber" class="form-label">Chapter Number</label>
+                            <input type="number" class="form-control" id="uploadChapterNumber" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="uploadChapter()">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+    tinymce.init({
+        selector: '#chapterContent,#uploadChapterContent', // This matches your actual textarea
+        height: 300,
+        menubar: false,
+        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code help wordcount',
+        toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help'
+    });
+
+    function editChapter(chapterId) {
+        const row = document.querySelector(`tr[data-id="${chapterId}"]`);
+        const novelId = row.getAttribute("data-novel-id");
+        const novelTitle = row.getAttribute("data-novel-title");
+        const chapterName = row.children[4].innerText;
+        const chapterContent = row.children[5].innerText;
+        const chapterNumber = row.children[6].innerText;
+
+        document.getElementById("chapterId").value = chapterId;
+        document.getElementById("novel_id").value = novelId;
+        document.getElementById("novel_title").value = novelTitle;
+        document.getElementById("chapterName").value = chapterName;
+        tinymce.get('chapterContent').setContent(chapterContent);
+        document.getElementById("chapterNumber").value = chapterNumber;
+
+
+    }
+
+
+    // Global save handler
+    document.getElementById('saveChapterChanges').addEventListener('click', function () {
+        const chapterId = document.getElementById('chapterId').value;
+        const chapterName = document.getElementById('chapterName').value;
+        const chapterContent = tinymce.get('chapterContent').getContent(); // Get content from TinyMCE
+        const chapterNumber = document.getElementById('chapterNumber').value;
+
+        fetch('/chapters', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                chapter_id: chapterId,
+                chapter_name: chapterName,
+                content: chapterContent,
+                chapter_number: chapterNumber
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === "Chapter updated successfully") {
+                    const row = document.querySelector(`tr[data-id="${chapterId}"]`);
+                    if (row) {
+                        row.children[4].innerText = chapterName;
+                        row.children[5].innerText = chapterContent;
+                        row.children[6].innerText = chapterNumber;
+                    }
+
+                    // Close modal
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('editChapterModal'));
+                    modal.hide();
+
+                    alert('Chapter updated!');
+                } else {
+                    alert('Error updating chapter!');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+            });
+    });
+    function uploadChapter() {
+        const novelId = document.getElementById('uploadNovelId').value;
+        const novelTitle = document.getElementById('uploadNovelTitle').value; // <-- Add this
+        const chapterName = document.getElementById('uploadChapterName').value;
+        const chapterContent = tinymce.get('uploadChapterContent').getContent();
+        const chapterNumber = document.getElementById('uploadChapterNumber').value;
+
+        fetch('/upload_chapter', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                novel_id: novelId,
+                novel_title: novelTitle, // <-- Send it here
+                chapter_name: chapterName,
+                content: chapterContent,
+                chapter_number: chapterNumber
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message === "Chapter uploaded successfully") {
+                    alert("Chapter uploaded!");
+                    document.getElementById("uploadChapterForm").reset();
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('uploadChapterModal'));
+                    modal.hide();
+                } else {
+                    alert(data.message || "Failed to upload chapter.");
+                }
+            })
+            .catch(err => {
+                console.error("Upload error:", err);
+                alert("An error occurred.");
+            });
+    }
+
+</script>
+
+{%endblock%}

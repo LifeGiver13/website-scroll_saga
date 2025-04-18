@@ -178,6 +178,10 @@ body {
     overflow-y: auto;
 }
 
+p {
+    font-family: 'Caudex', serif;
+}
+
 legend {
     color: #f5deb3;
 }

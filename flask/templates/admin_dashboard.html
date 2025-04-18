@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{page_title}}</title>
+    <script src="https://cdn.tiny.cloud/1/u0shkdmpl80klqqxbp0799c9k1kta5pjhzqo7uxi55x3pt5g/tinymce/7/tinymce.min.js"
+        referrerpolicy="origin"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="static/css/styles.css" rel="stylesheet" type="text/css" />
     <link rel="icon" type="image/png" href="static/images/saga_scroll.webp">
@@ -39,7 +41,20 @@
         <a href="{{url_for('panel')}}">📚 Novels</a>
         <a href="{{url_for('users')}}">👥 Users</a>
         <a href="{{url_for('comments')}}">📝 Reviews</a>
-        <a href="{{url_for('pages')}}">⚙️ Settings</a>
+
+        <div class="container mt-5">
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    Settings
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <li><a class="dropdown-item" style="color: black;" href="{{url_for('pages')}}">Pages</a></li>
+                    <li><a class="dropdown-item" style="color: black;" href="{{url_for('chapters')}}">Chapters</a></li>
+                </ul>
+            </div>
+        </div>
+
     </div>
 
     <!-- Main Content -->
@@ -69,24 +84,18 @@
         </div>
         {%block content%}
 
-        <!-- Recent Novels Table -->
-        <h2 class="mt-4">📖 Recent Novels</h2>
-        <button onclick="openNovelForm()" class="btn btn-success">Upload a novel</button>
-        <div id="novelForm" style="display: none;">
-            <form method="post" enctype="multipart/form-data" id="novelForm">
-                <input type="text" id="novelTitle" placeholder="Novel Title" required>
-                <input type="text" id="author" placeholder="Author" required>
-                <input type="text" id="genre" placeholder="Genre" required>
-                <input type="text" id="theme" placeholder="Theme">
-                <textarea id="description" placeholder="Description"></textarea>
-                <input type="date" id="publishDate">
-                <input type="file" id="coverImage" accept="image/*">
-            </form>
-            <button type="button" onclick="addNovel()">Add Novel</button>
 
 
-        </div>
+
+
+        <h2 class="mt-4">📚 Avalable Novels</h2>
+
         <div class="table-container table-responsive">
+            <p><!-- Trigger Button -->
+                <button class="btn btn-primary my-3" data-bs-toggle="modal" data-bs-target="#addNovelModal">
+                    + Add New Novel
+                </button>
+            </p>
             <table class="table table-striped mt-3" id="novelTable">
                 <thead>
                     <tr>
@@ -113,51 +122,231 @@
                                 style="display:inline;">
                                 <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                             </form>
-                            <button onclick="updateNovel()" class="btn btn-sm btn-warning">Update</button>
+                            <button class="btn btn-primary" onclick="openEditModal(`{{ novel['novel_id'] }}`)">Edit
+                                Novel</button>
 
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div> <!-- Add Novel Modal -->
+        <div class="modal fade" id="addNovelModal" tabindex="-1" aria-labelledby="addNovelModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addNovelModalLabel">Add New Novel</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="novelForm">
+                            <div class="mb-3">
+                                <label for="novelTitle" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="novelTitle" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="author1" class="form-label">Author</label>
+                                <input type="text" class="form-control" id="author1" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="genre" class="form-label">Genre</label>
+                                <input type="text" class="form-control" id="genre" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="theme" class="form-label">Theme</label>
+                                <input type="text" class="form-control" id="theme">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="publishDate" class="form-label">Publish Date</label>
+                                <input type="date" class="form-control" id="publishDate">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description1" class="form-label">Description</label>
+                                <textarea id="description1" class="form-control"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="coverImage" class="form-label">Cover Image</label>
+                                <input type="file" class="form-control" id="coverImage" accept="image/*">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" onclick="addNovel()">Save Novel</button>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- Edit Modal (Bootstrap) -->
+        <div class="modal fade" id="editNovelModal" tabindex="-1" aria-labelledby="editNovelModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editNovelModalLabel">Edit Novel</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editNovelForm">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                <input type="text" id="title" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="author" class="form-label">Author</label>
+                                <input type="text" id="author" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea id="description" class="form-control" rows="4"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" id="saveChangesBtn">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
     {%endblock%}
     <script>
-        function openNovelForm() {
-            document.getElementById("novelForm").style.display = "block";
-        }
+        // Initialize TinyMCE
 
         async function addNovel() {
-            console.log("novel uploaded");
-            let novel_title = document.getElementById("novelTitle").value;
-            let author = document.getElementById("author").value;
-            let genre = document.getElementById("genre").value;
-            let theme = document.getElementById("theme").value;
-            let description = document.getElementById("description").value;
-            let publish_date = document.getElementById("publish_date");
-            const formData = {
-                "novel_title": novel_title,
-                "author": author,
-                "genre": genre,
-                "theme": theme,
-                "description": description,
-                "publish_date": publish_date,
+            const novel_title = document.getElementById("novelTitle").value;
+            const author = document.getElementById("author1").value;
+            const genre = document.getElementById("genre").value;
+            const theme = document.getElementById("theme").value;
+            const description = document.getElementById("description1").value;
+            const publish_date = document.getElementById("publishDate").value;
+
+            const coverImageFile = document.getElementById("coverImage").files[0];
+
+            let filename = "default_cover.jpg";
+            if (coverImageFile) {
+                filename = await uploadCoverImage(coverImageFile);
             }
-            const response = await fetch(`/add_novel`, { method: "GET" });
-            const result = await response.json();
-            console.log("Added:", result);
+
+            const data = {
+                novel_title,
+                author,
+                genre,
+                theme,
+                description,
+                publish_date,
+                cover_image: filename
+            };
+
+            try {
+                const response = await fetch("/add_novel", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                console.error("Error adding novel:", error);
+            }
         }
+
+        let currentNovelId = null;
+
+        // Function to open the modal and load current novel data
+        function openEditModal(novelId) {
+            currentNovelId = novelId;
+
+            // Fetch the existing novel data from the backend
+            fetch(`/get_novel/${novelId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert("Failed to load novel data.");
+                    } else {
+                        // Fill the form with existing data
+                        document.getElementById("title").value = data.title || '';
+                        document.getElementById("author").value = data.author || '';
+                        document.getElementById("description").value = data.description || '';
+
+                        // Show the modal
+                        const editModal = new bootstrap.Modal(document.getElementById("editNovelModal"));
+                        editModal.show();
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching novel:", error);
+                    alert("Error fetching novel data.");
+                });
+        }
+
+        // Function to update the novel with new data
+        document.getElementById("saveChangesBtn").addEventListener("click", function () {
+            const updatedData = {
+                title: document.getElementById("title").value,
+                author: document.getElementById("author").value,
+                description: document.getElementById("description").value,
+            };
+
+            fetch(`/update_novel/${currentNovelId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(updatedData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert("Novel updated successfully!");
+                        // Close the modal after success
+                        const editModal = bootstrap.Modal.getInstance(document.getElementById("editNovelModal"));
+                        editModal.hide();
+                    } else {
+                        alert("Failed to update novel: " + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error updating novel:", error);
+                    alert("Error updating novel.");
+                });
+        });
 
         async function deleteNovel(novel_id) {
             const response = await fetch(`/delete_novel/${novel_id}`, { method: "DELETE" });
             const result = await response.json();
             console.log("Deleted:", result);
         }
+        async function uploadCoverImage(file) {
+            const formData = new FormData();
+            formData.append("cover_image", file);
 
+            const response = await fetch("/upload_cover", {
+                method: "POST",
+                body: formData,
+            });
 
+            const result = await response.json();
+            return result.filename; // Return filename to include in novel data
+        }
 
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
     <style>
         a {
             color: inherit;

@@ -4,7 +4,7 @@
 
 <main class="container py-4 bg-body-tertiary">
     {% if "username" in session %}
-    <div class="card bg-dark mb-3 mx-auto" style="max-width: 100rem;">
+    <div class=" mb-3 mx-auto" style="max-width: 100rem;">
         <div class="card mb-3">
             <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}"
                 class="rounded-circle d-block mx-auto mt-3" alt="Book Cover" style="width: 200px; height: 200px;">
@@ -21,15 +21,19 @@
 
                 <!-- Chapter Section -->
                 {% if chapter %}
-                <div class="chapter-content mt-4" id="chapterText">
-                    <h3 class="text-center" id="chapterTitle">{{ chapter.chapter_name }}</h3>
-                    <p id="chapterContent">{{ chapter.content }}</p>
+                <div class="scroll-wrapper">
+                    <div class="chapter-content mt-4" id="chapterText">
+                        <h3 class="text-center" id="chapterTitle">{{ chapter.chapter_name }}</h3>
+                        <p id="chapterContent">{{ chapter.content }}</p>
 
-                    <div class="d-flex justify-content-between">
-                        <button id="previousBtn" class="btn btn-secondary"
-                            data-previous-id="{{ chapter.chapter_number - 1 }}">Previous</button>
-                        <button id="nextBtn" class="btn btn-primary"
-                            data-next-id="{{ chapter.chapter_number + 1 }}">Next</button>
+                        <div class="d-flex justify-content-between">
+                            <button id="previousBtn" class="btn btn-secondary"
+                                data-previous-id="{{ chapter.chapter_number - 1 }}">Previous</button>
+                            <button id="nextBtn" class="btn btn-primary"
+                                data-next-id="{{ chapter.chapter_number + 1 }}">Next</button>
+                        </div>
+
+
                     </div>
                 </div>
                 {% endif %}
@@ -75,8 +79,8 @@
 
     {% else %}
     <p>
-        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
-        to read the novel and add a comment.
+        <a class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a> to read the novel and add
+        a comment.
     </p>
     {% endif %}
 </main>
@@ -156,29 +160,137 @@
     loadChapter(currentChapterId);
 </script>
 <style>
+    /* Import Fancy Header Font */
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600&display=swap');
+
+    /* Scroll Wrapper: Holds the full scroll with sticks */
+    .scroll-wrapper {
+        position: relative;
+        margin: 80px auto;
+        max-width: 900px;
+        padding: 40px 0;
+        overflow: visible;
+    }
+
+    /* Top & Bottom Wooden Sticks */
+    .scroll-wrapper::before,
+    .scroll-wrapper::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        height: 28px;
+        background-image:
+            radial-gradient(circle at left 10px center, #6a4a30 10%, transparent 11%),
+            radial-gradient(circle at right 10px center, #6a4a30 10%, transparent 11%),
+            linear-gradient(to bottom, #5e4026, #3e2c1c);
+        background-repeat: no-repeat;
+        background-size: 20px 20px, 20px 20px, 100% 100%;
+        background-position: left center, right center, center;
+        border-radius: 14px;
+        box-shadow:
+            inset 0 0 4px rgba(0, 0, 0, 0.3),
+            0 3px 6px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+
+    .scroll-wrapper::before {
+        top: -28px;
+    }
+
+    .scroll-wrapper::after {
+        bottom: -28px;
+    }
+
+    /* The Scroll Paper */
     .chapter-content {
-        background-color: #fdfcfb;
-        padding: 20px;
-        border-radius: 12px;
-        margin: 20px auto;
-        max-width: 800px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        line-height: 1.8;
+        background: url('https://www.transparenttextures.com/patterns/paper-fibers.png') repeat;
+        background-color: #f3e5ab;
+        padding: 40px 50px;
+        margin: 0 auto;
+        max-width: 850px;
         font-family: 'Georgia', serif;
+        line-height: 1.9;
+        color: #2b1d0f;
+        border-radius: 10px;
+        border: 1px solid #d6c2a1;
+        box-shadow:
+            inset 0 0 12px rgba(0, 0, 0, 0.07),
+            0 10px 25px rgba(0, 0, 0, 0.15);
+        position: relative;
+        z-index: 10;
+        overflow: hidden;
     }
 
+    /* Torn Edges Effect */
+    .chapter-content::before,
+    .chapter-content::after {
+        content: "";
+        position: absolute;
+        left: -6px;
+        right: -6px;
+        height: 14px;
+        background: repeating-radial-gradient(circle, #d6c2a1 0px, #f3e5ab 3px, transparent 5px);
+        background-size: 10px 10px;
+        opacity: 0.35;
+        z-index: 2;
+    }
+
+    .chapter-content::before {
+        top: -7px;
+    }
+
+    .chapter-content::after {
+        bottom: -7px;
+    }
+
+    /* Header */
     .chapter-content h3 {
+        font-family: 'Caudex', serif;
         font-weight: bold;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
         text-align: center;
-        color: #4b2e83;
+        color: #5b3b1d;
+        font-size: 2em;
+        text-shadow: 1px 1px 0 #f7f0d4;
     }
 
+    /* Paragraphs */
     .chapter-content p {
         text-indent: 2em;
-        margin-bottom: 1em;
-        font-size: 1.05em;
-        color: #1f1f1f;
+        margin-bottom: 1.5em;
+        font-size: 1.15em;
+        color: #3c2e1b;
+    }
+
+    /* Responsive Scroll (Mobile) */
+    @media (max-width: 600px) {
+        .scroll-wrapper {
+            padding: 30px 0;
+        }
+
+        .scroll-wrapper::before,
+        .scroll-wrapper::after {
+            height: 16px;
+            background-size: 15px 15px, 15px 15px, 100% 100%;
+        }
+
+        .chapter-content {
+            padding: 25px 20px;
+            font-size: 1em;
+            line-height: 1.7;
+            border-radius: 6px;
+        }
+
+        .chapter-content h3 {
+            font-size: 1.5em;
+        }
+
+        .chapter-content p {
+            font-size: 1em;
+            text-indent: 1.5em;
+        }
     }
 </style>
 
