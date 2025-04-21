@@ -9,6 +9,9 @@
     <title>{{page_title}}</title>
 
     <head>
+        <script src="https://cdn.tiny.cloud/1/u0shkdmpl80klqqxbp0799c9k1kta5pjhzqo7uxi55x3pt5g/tinymce/7/tinymce.min.js"
+            referrerpolicy="origin"></script>
+
         <link href="https://fonts.googleapis.com/css2?family=Caudex&display=swap" rel="stylesheet">
 
         <link rel="icon" type="image/png" href="static/images/saga_scroll.webp">
@@ -114,9 +117,11 @@
                                                 style="width: 40px; height: 40px;">
                                             <span>{{ current_user.username }}</span>
                                         </a>
+
+
                                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                             <li class="dropdown-item-text">
-                                                <small class="text-muted">{{ current_user.user_bio }}</small>
+                                                <small class="text-muted">{{current_user.user_bio }}</small>
                                             </li>
                                             <li>
                                                 <hr class="dropdown-divider">
@@ -137,6 +142,7 @@
                                                 data-bs-target="#registerModal">Register</a>
 
                                         </div>
+
                                         {% endif %}
 
 

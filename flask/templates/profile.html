@@ -1,10 +1,10 @@
 {%extends "default_page.html" %}
 {%block content%}
+
 <main style="padding: 10px; background-image: url(static/images/sAga_scroll.webp);">
     <div class="container mt-5 mb-5" style="background-color: #f5deb3;">
         <h2 class="mb-4">Update Profile</h2>
-        <form action="/update_profile" method="POST" enctype="multipart/form-data">
-
+        <form enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
                 <input type="text" class="form-control" id="username" name="username"
@@ -18,9 +18,10 @@
             </div>
 
             <div class="mb-3">
-                <label for="user_bio" class="form-label">Bio</label>
+                <label for="user_bio">Bio</label>
                 <textarea class="form-control" id="user_bio" name="user_bio"
-                    rows="3">{{ current_user.user_bio }}</textarea>
+                    rows="3">{{ current_user.user_bio | e }}</textarea>
+
             </div>
 
             <div class="mb-3">
@@ -28,16 +29,105 @@
                 <input class="form-control" type="file" id="profile_photo" name="profile_photo" accept="image/*">
                 {% if current_user.profile_photo %}
                 <div class="mt-2">
-                    <img src="{{ url_for('static', filename='images/' ~ current_user.profile_photo) }}"
+                    <img id="profile-photo-img"
+                        src="{{ url_for('static', filename='images/' ~ current_user.profile_photo) }}"
                         alt="Current Profile Photo" class="img-thumbnail"
                         style="width: 500px; height: 500px; object-fit: cover;">
+
                 </div>
                 {% endif %}
             </div>
-
-            <button type="submit" style="margin: 40px 550px;" class="btn btn-primary">Update Profile</button>
+            <button type="button" style="margin: 40px 550px;" id="saveChange" class="btn btn-primary">
+                Update Profile
+            </button>
         </form>
+
+
+
     </div>
+
+    <script>
+
+    </script>
+
+
+
 </main>
+<script>
+
+    const updateProfileData = async () => {
+        const profileData = {
+            username: document.getElementById('username').value,
+            email_address: document.getElementById('email_address').value,
+            user_bio: document.getElementById('user_bio').value,  // ✅ this is critical
+        };
+
+        console.log("Profile Data Being Sent:", profileData); // 👀 Check this in console
+
+        try {
+            const res = await fetch('/update_profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(profileData)
+            });
+
+            const response = await res.json();
+
+            if (res.ok) {
+                showToast(response.message, 'success');
+            } else if (res.status === 409) {
+                showToast(response.error, 'warning');
+            } else {
+                showToast(response.error || "An unknown error occurred", 'error');
+            }
+        } catch (error) {
+            showToast('An error occurred while updating the profile.', 'error');
+        }
+    };
+
+
+
+    // Call functions when form is submitted
+    document.getElementById('saveChange').addEventListener('click', (event) => {
+        event.preventDefault(); // Prevent form submission to handle with AJAX
+
+        updateProfileData(); // Update profile data
+        uploadProfilePhoto(); // Upload profile photo
+    });
+
+    const uploadProfilePhoto = async () => {
+        const formData = new FormData();
+        const photoInput = document.getElementById('profile_photo');
+        const photoFile = photoInput.files[0];
+
+        if (!photoFile) return; // no file, skip
+
+        formData.append('profile_photo', photoFile);
+
+        try {
+            const res = await fetch('/upload_profile_photo', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const response = await res.json();
+
+            if (res.ok) {
+                document.getElementById('profile-photo-img').src = response.photo_url;
+                showToast(response.message, 'success');
+            } else {
+                showToast(response.error, 'error');
+            }
+
+        } catch (error) {
+            showToast('An error occurred while uploading the photo.', 'error');
+        }
+    };
+
+</script>
+
+
 
 {%endblock%}

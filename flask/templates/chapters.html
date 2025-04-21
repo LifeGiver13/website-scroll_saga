@@ -1,6 +1,6 @@
 {%extends "admin_dashboard.html"%}
 {%block content%}
-<h2 class="mt-4">Recent Chapters</h2>
+<h2 class="mt-4">🧾Recent Chapters</h2>
 
 <div class="table-container table-responsive">
     <p><button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#uploadChapterModal">
@@ -143,13 +143,6 @@
 </div>
 
 <script>
-    tinymce.init({
-        selector: '#chapterContent,#uploadChapterContent', // This matches your actual textarea
-        height: 300,
-        menubar: false,
-        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code help wordcount',
-        toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help'
-    });
 
     function editChapter(chapterId) {
         const row = document.querySelector(`tr[data-id="${chapterId}"]`);
@@ -163,7 +156,7 @@
         document.getElementById("novel_id").value = novelId;
         document.getElementById("novel_title").value = novelTitle;
         document.getElementById("chapterName").value = chapterName;
-        tinymce.get('chapterContent').setContent(chapterContent);
+        document.getElementById('chapterContent').value = chapterContent;
         document.getElementById("chapterNumber").value = chapterNumber;
 
 
@@ -174,7 +167,7 @@
     document.getElementById('saveChapterChanges').addEventListener('click', function () {
         const chapterId = document.getElementById('chapterId').value;
         const chapterName = document.getElementById('chapterName').value;
-        const chapterContent = tinymce.get('chapterContent').getContent(); // Get content from TinyMCE
+        const chapterContent = document.getElementById('chapterContent').value; // Get content from TinyMCE
         const chapterNumber = document.getElementById('chapterNumber').value;
 
         fetch('/chapters', {
@@ -216,7 +209,7 @@
         const novelId = document.getElementById('uploadNovelId').value;
         const novelTitle = document.getElementById('uploadNovelTitle').value; // <-- Add this
         const chapterName = document.getElementById('uploadChapterName').value;
-        const chapterContent = tinymce.get('uploadChapterContent').getContent();
+        const chapterContent = document.getElementById('uploadChapterContent').value;
         const chapterNumber = document.getElementById('uploadChapterNumber').value;
 
         fetch('/upload_chapter', {

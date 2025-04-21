@@ -423,40 +423,93 @@ def logout():
 @app.route("/update_profile", methods=["POST"])
 def update_profile():
     if 'username' not in session:
-        return redirect("/login")
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json()
+    print("Received JSON data:", data)  # ✅ See what's coming in
+
+    if not data:
+        return jsonify({"error": "Invalid JSON"}), 400
 
     user = Users.query.filter_by(username=session['username']).first()
 
     if user:
-        user.username = request.form['username']
-        user.email_address = request.form['email_address']
-        user.user_bio = request.form['user_bio']
+        new_username = data.get('username')
+        new_email = data.get('email_address')
 
-        # Handle profile photo upload
-        photo = request.files.get('profile_photo')
-        if photo and photo.filename != '':
-            filename = secure_filename(photo.filename)
-            photo.save(os.path.join('static/images', filename))
-            user.profile_photo = filename
+        # Check for existing username (excluding current user)
+        existing_user = Users.query.filter(
+            Users.username == new_username, Users.user_id != user.user_id).first()
+
+        if existing_user:
+            return jsonify({"error": "Username already exists"}), 409
+
+        # Check for existing email (excluding current user)
+        existing_email = Users.query.filter(
+            Users.email_address == new_email, Users.user_id != user.user_id).first()
+        if existing_email:
+            return jsonify({"error": "Email already exists"}), 409
+
+        user.username = new_username
+        user.email_address = new_email
+        user.user_bio = "This is my first bio 🎤"
 
         db.session.commit()
-        flash("Profile updated successfully!", "success")
 
-    return redirect(url_for('novel_list'))
+        return jsonify({
+            "message": "Profile updated successfully!",
+            'updated_profile': {
+                "username": user.username,
+                "email_address": user.email_address,
+                "user_bio": user.user_bio
+            }
+        }), 200
+
+    return jsonify({"error": "User not found"}), 404
+
+
+@app.route("/upload_profile_photo", methods=["POST"])
+def upload_profile_photo():
+    if 'username' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user = Users.query.filter_by(username=session['username']).first()
+    photo = request.files.get("profile_photo")
+
+    if user and photo and photo.filename != '':
+        filename = secure_filename(photo.filename)
+        filepath = os.path.join("static/images", filename)
+        photo.save(filepath)
+        user.profile_photo = filename
+        db.session.commit()
+
+        return jsonify({
+            "message": "Profile photo updated successfully!",
+            "photo_url": url_for("static", filename=f"images/{filename}")
+        }), 200
+
+    return jsonify({"error": "Invalid photo or user not found"}), 400
 
 
 @app.route("/profile")
 def profile():
     user = Users.query.filter_by(username=session['username']).first()
+
     return render_template("profile.html", current_user=user)
 
 
 @app.route("/admin_panel", methods=["GET", "POST"])
 def panel():
+    return render_template("admin_dashboard.html", page_title="Admin Panel")
+
+
+@app.route("/totalNovels", methods=["GET", "POST"])
+def total_novels():
+
     novels = Novel.query.all()  # Fetch all novels from the database
     novels_data = [novel.to_dict()
                    for novel in novels]
-    return render_template("admin_dashboard.html", page_title="Admin Panel", novels=novels_data)
+    return render_template("novels.html", page_title="Admin Panel", novels=novels_data)
 
 
 @app.route("/users", methods=["POST", "GET"])
@@ -676,31 +729,35 @@ def edit_novel(novel_id):
 @app.route("/novel/<int:novel_id>/<string:novel_title>", methods=["GET", "POST"])
 def novel_details_page(novel_id, novel_title):
     novel = Novel.query.get_or_404(novel_id)
-
-    # Get all chapters of this novel
     chapters = Chapters.query.filter_by(
         novel_id=novel_id).order_by(Chapters.chapter_id).all()
-
-    # Define the first chapter to display by default
     first_chapter = chapters[0] if chapters else None
+    reviews = Reviews.query.filter_by(novel_id=novel_id).order_by(
+        Reviews.publish_time.desc()).all()
 
-    # Get reviews for this novel
-    reviews = Reviews.query.filter_by(novel_id=novel_id).all()
-
-    # Redirect if not logged in
-    if 'username' not in session:
-        return redirect(url_for("login"))
-
-    # Handle POST request for new comment
-    if request.method == "POST":
-        if "user_id" not in session:
-            flash("You need to be logged in to post a comment.", "danger")
+    # 🔐 If user is not logged in and it's a POST or non-JSON request, redirect to login
+    if request.method == "POST" and not request.is_json:
+        if "username" not in session:
             return redirect(url_for("login"))
 
-    user = Users.query.get(session["user_id"])
-    content = request.form.get("content")
+    # 📝 Handle POST request (Add a comment)
+    if request.method == "POST":
+        if not request.is_json:
+            return jsonify({"error": "Only JSON requests allowed"}), 400
 
-    if content and user:
+        data = request.get_json()
+        content = data.get("content", "").strip()
+
+        if "user_id" not in session:
+            return jsonify({"error": "Login required"}), 401
+
+        if not content:
+            return jsonify({"error": "Content is empty"}), 400
+
+        user = Users.query.get(session["user_id"])
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
         new_review = Reviews(
             novel_id=novel_id,
             user_id=user.user_id,
@@ -710,49 +767,62 @@ def novel_details_page(novel_id, novel_title):
             review_text=content,
             publish_time=datetime.utcnow()
         )
+
         db.session.add(new_review)
         db.session.commit()
-        flash("Your comment has been posted!", "success")
-        return redirect(url_for("novel_details_page", novel_id=novel_id, novel_title=novel_title))
 
-    # Pass the novel, reviews, all chapters, and first chapter to the template
+        return jsonify({"message": "Review posted successfully"}), 201
+
+    # 📡 Handle AJAX GET request (fetch JSON data)
+   # 📡 Handle AJAX GET request (fetch JSON data)
+# 📡 Handle AJAX GET request (fetch JSON data)
+    if request.headers.get("Accept") == "application/json":
+        return jsonify({
+            "novel": novel.to_dict(),
+            "chapters": [chapter.to_dict() for chapter in chapters],
+            "first_chapter": first_chapter.to_dict() if first_chapter else None,
+            "reviews": [review.to_dict() for review in reviews]
+        })
+
+    # 🖼️ Normal GET request (render HTML)
     return render_template(
         "details.html",
         novel=novel,
         reviews=reviews,
         chapters=chapters,
-        chapter=first_chapter  # Single chapter to load initially
+        chapter=first_chapter
     )
 
 
-@app.route('/chapter/<int:novel_id>/<int:chapter_number>', methods=['GET'])
+@app.route("/chapter/<int:novel_id>/<int:chapter_number>", methods=["POST", "GET"])
 def get_chapter(novel_id, chapter_number):
-    # Get the chapter by novel_id and chapter_number
     chapter = Chapters.query.filter_by(
         novel_id=novel_id, chapter_number=chapter_number).first()
 
     if not chapter:
-        return jsonify({'error': 'Chapter not found'}), 404
+        return jsonify({"error": "Chapter not found"}), 404
 
-    # Find the next and previous chapters (by ID)
+    # Get previous and next chapter numbers
+    previous_chapter = Chapters.query.filter_by(
+        novel_id=novel_id, chapter_number=chapter_number - 1).first()
     next_chapter = Chapters.query.filter_by(
-        novel_id=novel_id, chapter_number=chapter.chapter_number + 1).first()
-    prev_chapter = Chapters.query.filter_by(
-        novel_id=novel_id, chapter_number=chapter.chapter_number - 1).first()
+        novel_id=novel_id, chapter_number=chapter_number + 1).first()
 
     return jsonify({
         "chapter_name": chapter.chapter_name,
         "content": chapter.content,
-        "previous_id": chapter.chapter_number - 1 if prev_chapter else None,
-        "next_id": chapter.chapter_number + 1 if next_chapter else None
+        "previous_id": previous_chapter.chapter_number if previous_chapter else None,
+        "next_id": next_chapter.chapter_number if next_chapter else None
     })
 
 
-@app.route('/chapters', methods=["POST", "GET"])
+@app.route('/chapters', methods=["GET", "POST"])
 def chapters():
     if request.method == "POST":
-        data = request.get_json()
+        if not request.is_json:
+            return jsonify({"error": "Request must be JSON"}), 400
 
+        data = request.get_json()
         chapter_id = data.get("chapter_id")
         chapter_name = data.get("chapter_name")
         content = data.get("content")
@@ -770,12 +840,15 @@ def chapters():
             chapter.chapter_number = chapter_number
 
         db.session.commit()
-
         return jsonify({"message": "Chapter updated successfully", "chapter": chapter.to_dict()}), 200
 
     # GET method
     chapters = Chapters.query.all()
     chapter_data = [chapter.to_dict() for chapter in chapters]
+
+    if request.is_json:
+        return jsonify(chapter_data)
+
     return render_template("chapters.html", chapters=chapter_data)
 
 
@@ -861,6 +934,14 @@ def unsave_novel(novel_id):
         db.session.delete(saved)
         db.session.commit()
     return jsonify(status="unsaved")
+
+
+@app.route("/")
+def US():
+    saved = Users.query.filter_by(
+        user_id=session["user_id"]).first()
+    saved_data = [user.to_dict() for user in saved]
+    return render_template('default_page.html', user=saved_data)
 
 
 # Run the Flask app
