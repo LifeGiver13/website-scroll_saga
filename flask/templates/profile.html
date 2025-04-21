@@ -4,7 +4,7 @@
 <main style="padding: 10px; background-image: url(static/images/sAga_scroll.webp);">
     <div class="container mt-5 mb-5" style="background-color: #f5deb3;">
         <h2 class="mb-4">Update Profile</h2>
-        <form enctype="multipart/form-data">
+        <form id="updateProfileForm" action="/update_profile" method="post">
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
                 <input type="text" class="form-control" id="username" name="username"
@@ -17,11 +17,10 @@
                     value="{{ current_user.email_address }}" required>
             </div>
 
-            <div class="mb-3">
-                <label for="user_bio">Bio</label>
+            <div class="mb-3" id="bioSection" {% if not current_user.user_bio %}style="display: none;" {% endif %}>
+                <label for="user_bio" class="form-label">Bio</label>
                 <textarea class="form-control" id="user_bio" name="user_bio"
-                    rows="3">{{ current_user.user_bio | e }}</textarea>
-
+                    rows="3">{{ current_user.user_bio }}</textarea>
             </div>
 
             <div class="mb-3">
@@ -33,36 +32,40 @@
                         src="{{ url_for('static', filename='images/' ~ current_user.profile_photo) }}"
                         alt="Current Profile Photo" class="img-thumbnail"
                         style="width: 500px; height: 500px; object-fit: cover;">
-
                 </div>
                 {% endif %}
             </div>
-            <button type="button" style="margin: 40px 550px;" id="saveChange" class="btn btn-primary">
-                Update Profile
-            </button>
+
+            <button type="button" style="margin: 40px 550px;" id="saveChange" class="btn btn-primary">Update
+                Profile</button>
         </form>
-
-
-
     </div>
-
-    <script>
-
-    </script>
-
-
-
 </main>
+
+<script>
+    // Check if bio field is empty, if so hide the section
+    const bioField = document.getElementById('user_bio');
+    const bioSection = document.getElementById('bioSection');
+
+    bioField.addEventListener('input', () => {
+        if (bioField.value.trim() === '') {
+            bioSection.style.display = 'none'; // Hide the section if empty
+        } else {
+            bioSection.style.display = 'block'; // Show the section if not empty
+        }
+    });
+</script>
 <script>
 
     const updateProfileData = async () => {
+        const bioField = document.getElementById('user_bio');
         const profileData = {
             username: document.getElementById('username').value,
             email_address: document.getElementById('email_address').value,
-            user_bio: document.getElementById('user_bio').value,  // ✅ this is critical
+            user_bio: bioField.value.trim() === '' ? 'No bio provided' : bioField.value,  // If bio is empty, set it to a default text
         };
 
-        console.log("Profile Data Being Sent:", profileData); // 👀 Check this in console
+        console.log("Profile Data Being Sent:", profileData); // Check this in console
 
         try {
             const res = await fetch('/update_profile', {

@@ -82,9 +82,6 @@
                                     <li class="nav-item"><a href="{{ url_for('show_page', slug='saga_news') }}">Saga
                                             News</a>
                                     </li>
-                                    <li class="nav-item"><a href="{{ url_for('panel') }}">Admin
-                                            Panel</a></li>
-
                                     <!-- Search -->
                                     <li class="nav-item">
                                         <form class="d-flex" action="{{ url_for('search') }}" method="GET">
@@ -96,6 +93,7 @@
 
                                     <!-- Booklist -->
                                     <li class="nav-item">
+                                        {%if current_user%}
                                         <a class="nav-link text-light" href="{{ url_for('my_booklist') }}">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                 fill="currentColor" class="bi bi-bookmarks" viewBox="0 0 16 16">
@@ -105,6 +103,17 @@
                                                     d="M4.268 1H12a1 1 0 0 1 1 1v11.768l.223.148A.5.5 0 0 0 14 13.5V2a2 2 0 0 0-2-2H6a2 2 0 0 0-1.732 1" />
                                             </svg>
                                         </a>
+                                        {%else%}
+                                        <button id="booklist-btn" class="btn btn-warning">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                fill="currentColor" class="bi bi-bookmarks" viewBox="0 0 16 16">
+                                                <path
+                                                    d="M2 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v11.5a.5.5 0 0 1-.777.416L7 13.101l-4.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v10.566l3.723-2.482a.5.5 0 0 1 .554 0L11 14.566V4a1 1 0 0 0-1-1z" />
+                                                <path
+                                                    d="M4.268 1H12a1 1 0 0 1 1 1v11.768l.223.148A.5.5 0 0 0 14 13.5V2a2 2 0 0 0-2-2H6a2 2 0 0 0-1.732 1" />
+                                            </svg>
+                                        </button>
+                                        {%endif%}
                                     </li>
 
                                     <!-- User -->
@@ -256,6 +265,13 @@
                 </div>
             </nav>
         </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} mt-2">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
 
 
 
@@ -352,6 +368,19 @@
 
 
     </div>
+    <div aria-live="polite" aria-atomic="true" class="position-relative">
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="toastMessage" class="toast align-items-center text-bg-warning border-0" role="alert"
+                aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body" id="toastBody"></div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                        aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>

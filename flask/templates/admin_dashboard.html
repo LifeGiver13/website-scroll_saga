@@ -51,8 +51,9 @@
                     ⚙️ Settings
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <li><a class="dropdown-item" href="{{ url_for('pages') }}">Pages</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('chapters') }}">Chapters</a></li>
+                    <li><a class="dropdown-item" style="color: black;" href="{{ url_for('pages') }}">Pages</a></li>
+                    <li><a class="dropdown-item" style="color: black;" href="{{ url_for('chapters') }}">Chapters</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -64,7 +65,9 @@
         {%block content%}
 
         <!-- Main Content -->
-        <h2>Welcome to the Admin Dashboard</h2>
+        <h1>Welcome to the Admin Dashboard, {{ session['username'] }}!</h1>
+        <a href="{{ url_for('admin_logout') }}" class="btn btn-danger">Logout</a>
+
 
         <!-- Stats Section -->
         <div class="row">

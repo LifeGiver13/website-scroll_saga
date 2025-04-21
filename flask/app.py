@@ -193,7 +193,9 @@ class Chapters(db.Model):
 def show_page(slug):
     novels = Novel.query.all()
     page = Page.query.filter_by(slug=slug).first_or_404()
-    return render_template(f'{slug}.html', page=page, novels=novels)
+    current_user = Users.query.filter_by(
+        username=session['username']).first()
+    return render_template(f'{slug}.html', page=page, novels=novels, current_user=current_user)
 
 
 @app.route("/pages", methods=["POST", "GET"])
@@ -426,8 +428,6 @@ def update_profile():
         return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json()
-    print("Received JSON data:", data)  # ✅ See what's coming in
-
     if not data:
         return jsonify({"error": "Invalid JSON"}), 400
 
@@ -440,7 +440,6 @@ def update_profile():
         # Check for existing username (excluding current user)
         existing_user = Users.query.filter(
             Users.username == new_username, Users.user_id != user.user_id).first()
-
         if existing_user:
             return jsonify({"error": "Username already exists"}), 409
 
@@ -452,13 +451,13 @@ def update_profile():
 
         user.username = new_username
         user.email_address = new_email
-        user.user_bio = "This is my first bio 🎤"
+        user.user_bio = data.get('user_bio')
 
         db.session.commit()
 
         return jsonify({
             "message": "Profile updated successfully!",
-            'updated_profile': {
+            "updated_user": {
                 "username": user.username,
                 "email_address": user.email_address,
                 "user_bio": user.user_bio
@@ -496,11 +495,6 @@ def profile():
     user = Users.query.filter_by(username=session['username']).first()
 
     return render_template("profile.html", current_user=user)
-
-
-@app.route("/admin_panel", methods=["GET", "POST"])
-def panel():
-    return render_template("admin_dashboard.html", page_title="Admin Panel")
 
 
 @app.route("/totalNovels", methods=["GET", "POST"])
@@ -728,6 +722,7 @@ def edit_novel(novel_id):
 
 @app.route("/novel/<int:novel_id>/<string:novel_title>", methods=["GET", "POST"])
 def novel_details_page(novel_id, novel_title):
+
     novel = Novel.query.get_or_404(novel_id)
     chapters = Chapters.query.filter_by(
         novel_id=novel_id).order_by(Chapters.chapter_id).all()
@@ -772,10 +767,11 @@ def novel_details_page(novel_id, novel_title):
         db.session.commit()
 
         return jsonify({"message": "Review posted successfully"}), 201
+    username = session.get("username")
+    current_user = Users.query.filter_by(
+        username=username).first() if username else None
 
     # 📡 Handle AJAX GET request (fetch JSON data)
-   # 📡 Handle AJAX GET request (fetch JSON data)
-# 📡 Handle AJAX GET request (fetch JSON data)
     if request.headers.get("Accept") == "application/json":
         return jsonify({
             "novel": novel.to_dict(),
@@ -790,7 +786,8 @@ def novel_details_page(novel_id, novel_title):
         novel=novel,
         reviews=reviews,
         chapters=chapters,
-        chapter=first_chapter
+        chapter=first_chapter,
+        current_user=current_user
     )
 
 
@@ -904,10 +901,11 @@ def upload_chapter():
         return jsonify({'message': 'Error uploading chapter', 'error': str(e)}), 500
 
 
-@app.route('/my_booklist', methods=["GET", "POST"])
+@app.route('/my_booklist', methods=["GET"])
 def my_booklist():
     if "user_id" not in session:
-        # Redirect to login if user is not logged in
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({"error": "Unauthorized", "message": "Please log in to view your booklist."}), 401
         return redirect(url_for('login'))
     user_id = session["user_id"]
     saved = BookList.query.filter_by(user_id=user_id).all()
@@ -942,6 +940,46 @@ def US():
         user_id=session["user_id"]).first()
     saved_data = [user.to_dict() for user in saved]
     return render_template('default_page.html', user=saved_data)
+
+
+@app.route('/admin/login', methods=["GET", "POST"])
+def admin_login():
+
+    if request.method == "POST":
+        username = request.form['username']
+        password = request.form['password']
+
+        # Query the database for the user
+        user = Users.query.filter_by(username=username).first()
+
+        # Check if user exists and password is correct
+        if user and check_password_hash(user.password, password):
+            # Check if user is an admin
+            if user.role == 'admin':
+                # Store user session data (e.g., user ID or username)
+                session['user_id'] = user.user_id
+                session['username'] = user.username
+                flash("Login successful!", "success")
+                # Redirect to admin dashboard
+                return redirect(url_for('panel'))
+            else:
+                flash("You are not authorized to access the admin dashboard.", "danger")
+        else:
+            flash("Invalid credentials. Please try again.", "danger")
+
+    return render_template('admin_login.html')  # Render the login form
+
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.clear()  # Clear session data
+    flash("You have logged out.", "info")
+    return redirect(url_for('admin_login'))
+
+
+@app.route("/ad", methods=["GET", "POST"])
+def panel():
+    return render_template("admin_dashboard.html", page_title="Admin Panel")
 
 
 # Run the Flask app
