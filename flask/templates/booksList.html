@@ -5,6 +5,7 @@
     <h2 class="mb-4">📚 My Booklist</h2>
     <ul class="list-group">
         {% for novel in novels %}
+
         <li class="list-group-item mb-3 p-3">
             <div class="row align-items-center">
                 <!-- Cover Image -->
@@ -18,9 +19,13 @@
                     <h4 style="color: #8b5a2b;"><strong>{{ novel.novel_title }}</strong></h4>
                     <p><strong>Description:</strong> {{ novel.description[:100] }}...</p>
                     <p><strong>Theme:</strong> {{ novel.theme }}</p>
+
                     <div class="d-flex gap-2">
-                        <a href="/novel/{{ novel.novel_id }}/{{ novel.novel_title }}" class="btn btn-primary">📖 Read
-                            Now</a>
+                        <p><strong>Last Read Chapter:</strong> Chapter {{ novel.last_read_chapter }}</p>
+                        <!-- <a href="/chapter/{{ novel.novel_id }}/{{novel.last_read_chapter}}" class="btn btn-success"> -->
+                        <!-- 🔁 Resume Reading
+                        </a> -->
+
                         <button class="btn btn-outline-warning unsave-btn" data-novel-id="{{ novel.novel_id }}">📚
                             Unsave From Booklist</button>
                     </div>
@@ -57,5 +62,7 @@
                 });
         });
     });
+
+
 </script>
 {% endblock %}

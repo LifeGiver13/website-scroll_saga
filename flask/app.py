@@ -138,8 +138,12 @@ class Reviews(db.Model):
 class BookList(db.Model):
     __tablename__ = 'book_list'
     bookList_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
+    user_id = db.Column(db.Integer, db.ForeignKey(
+        'users.user_id'), nullable=False)
     novel_id = db.Column(db.Integer, db.ForeignKey('novel_listings.novel_id'))
+    last_read_chapter = db.Column(
+        db.Integer, default=1)  # start from chapter 1
+
     # novel_title = db.Column(
     #     db.String(225), nullable=False, )
     # username = db.Column(db.String(255), nullable=False)
@@ -651,6 +655,9 @@ def add_novel():
 def search():
     query = request.args.get('query')
     results = []
+    username = session.get("username")
+    current_user = Users.query.filter_by(
+        username=username).first() if username else None
 
     if query:
         # Example: search in novel titles or descriptions
@@ -659,7 +666,7 @@ def search():
             Novel.description.ilike(f'%{query}%')
         ).all()
 
-    return render_template('search_results.html', query=query, results=results)
+    return render_template('search_results.html', query=query, results=results, current_user=current_user)
 
 # @app.route("/")
 # def home():
@@ -695,9 +702,30 @@ def delete_comment(review_id):
 @app.route("/delete_user/<int:user_id>", methods=["POST", "DELETE"])
 def delete_user(user_id):
     user = Users.query.get_or_404(user_id)
+
     db.session.delete(user)
     db.session.commit()
+
+    # If the request is AJAX (DELETE), return JSON
+    if request.method == "DELETE" or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({"message": f"User with ID {user_id} deleted."}), 200
+
+    # Otherwise, redirect as fallback (POST)
     return redirect(url_for("panel"))
+
+
+@app.route("/update_user_role/<int:user_id>", methods=["PUT"])
+def update_user_role(user_id):
+    data = request.get_json()
+    new_role = data.get("role")
+
+    user = Users.query.get(user_id)
+    if user:
+        user.role = new_role
+        db.session.commit()
+        return jsonify({"message": f"Role updated to {new_role} for user {user_id}"})
+    else:
+        return jsonify({"error": "User not found"}), 404
 
 
 @app.route("/edit_novel/<int:novel_id>", methods=["GET", "POST"])
@@ -724,9 +752,13 @@ def edit_novel(novel_id):
 def novel_details_page(novel_id, novel_title):
 
     novel = Novel.query.get_or_404(novel_id)
-    chapters = Chapters.query.filter_by(
-        novel_id=novel_id).order_by(Chapters.chapter_id).all()
-    first_chapter = chapters[0] if chapters else None
+    chapters = Chapters.query.filter_by(novel_id=novel_id).order_by(
+        Chapters.chapter_number.asc()).all()
+    first_chapter = Chapters.query.filter_by(novel_id=novel_id).order_by(
+        Chapters.chapter_number.asc()).first()
+
+    total_chapters = Chapters.query.filter_by(novel_id=novel_id).count()
+
     reviews = Reviews.query.filter_by(novel_id=novel_id).order_by(
         Reviews.publish_time.desc()).all()
 
@@ -787,29 +819,37 @@ def novel_details_page(novel_id, novel_title):
         reviews=reviews,
         chapters=chapters,
         chapter=first_chapter,
-        current_user=current_user
+        current_user=current_user,
+        total_chapters=total_chapters
     )
 
 
-@app.route("/chapter/<int:novel_id>/<int:chapter_number>", methods=["POST", "GET"])
-def get_chapter(novel_id, chapter_number):
+@app.route("/chapter/<int:novel_id>/<int:chapter_number>")
+def get_chapter_by_number(novel_id, chapter_number):
     chapter = Chapters.query.filter_by(
         novel_id=novel_id, chapter_number=chapter_number).first()
 
     if not chapter:
-        return jsonify({"error": "Chapter not found"}), 404
+        return jsonify({"error": "Chapter not found."}), 404
 
-    # Get previous and next chapter numbers
-    previous_chapter = Chapters.query.filter_by(
-        novel_id=novel_id, chapter_number=chapter_number - 1).first()
-    next_chapter = Chapters.query.filter_by(
-        novel_id=novel_id, chapter_number=chapter_number + 1).first()
+    # Get next and previous chapter numbers (if they exist)
+    next_chapter = Chapters.query.filter(
+        Chapters.novel_id == novel_id,
+        Chapters.chapter_number > chapter_number
+    ).order_by(Chapters.chapter_number.asc()).first()
+
+    previous_chapter = Chapters.query.filter(
+        Chapters.novel_id == novel_id,
+        Chapters.chapter_number < chapter_number
+    ).order_by(Chapters.chapter_number.desc()).first()
 
     return jsonify({
+        "chapter_id": chapter.chapter_id,
+        "chapter_number": chapter.chapter_number,
         "chapter_name": chapter.chapter_name,
         "content": chapter.content,
-        "previous_id": previous_chapter.chapter_number if previous_chapter else None,
-        "next_id": next_chapter.chapter_number if next_chapter else None
+        "next_id": next_chapter.chapter_number if next_chapter else None,
+        "previous_id": previous_chapter.chapter_number if previous_chapter else None
     })
 
 
@@ -907,10 +947,35 @@ def my_booklist():
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({"error": "Unauthorized", "message": "Please log in to view your booklist."}), 401
         return redirect(url_for('login'))
+
     user_id = session["user_id"]
     saved = BookList.query.filter_by(user_id=user_id).all()
-    novels = [entry.novel for entry in saved]
+
+    novels = [{
+        "novel_id": entry.novel.novel_id,
+        "novel_title": entry.novel.novel_title,
+        "cover_image": entry.novel.cover_image,
+        "description": entry.novel.description,
+        "theme": entry.novel.theme,
+        "last_read_chapter": entry.last_read_chapter
+    } for entry in saved]
+
     return render_template("booksList.html", novels=novels)
+
+
+# @app.route('/update_progress/<int:novel_id>/<int:chapter_number>', methods=["POST"])
+# def update_progress(novel_id, chapter_number):
+#     if "user_id" not in session:
+#         return jsonify({"error": "Not logged in"}), 401
+
+#     entry = BookList.query.filter_by(
+#         user_id=session["user_id"], novel_id=novel_id).first()
+#     if entry:
+#         if chapter_number > entry.last_read_chapter:
+#             entry.last_read_chapter = chapter_number
+#             db.session.commit()
+#         return jsonify(status="updated")
+#     return jsonify(error="Not found"), 404
 
 
 @app.route('/save_novel/<int:novel_id>', methods=['POST'])
@@ -918,7 +983,11 @@ def save_novel(novel_id):
     already_saved = BookList.query.filter_by(
         user_id=session["user_id"], novel_id=novel_id).first()
     if not already_saved:
-        new_entry = BookList(user_id=session["user_id"], novel_id=novel_id)
+        new_entry = BookList(
+            user_id=session["user_id"],
+            novel_id=novel_id,
+            last_read_chapter=1  # or whatever the actual first chapter number is
+        )
         db.session.add(new_entry)
         db.session.commit()
     return jsonify(status="saved")
@@ -979,6 +1048,17 @@ def admin_logout():
 
 @app.route("/ad", methods=["GET", "POST"])
 def panel():
+    username = session.get('username')
+    if not username:
+        # Redirect to admin login if not logged in
+        return redirect(url_for("admin_login"))
+
+    user = Users.query.get(username)  # Query the user from the database
+    if user and user.role != 'admin':
+        # Redirect to admin login if not an admin
+        return redirect(url_for("admin_login"))
+
+    # If the user is an admin, render the admin dashboard
     return render_template("admin_dashboard.html", page_title="Admin Panel")
 
 

@@ -37,7 +37,7 @@
 
             const slug = row.querySelector('.slugInput').value.trim();
             const title = row.querySelector('.titleInput').value.trim();
-            const content = row.querySelector('.contentInput').value.trim();
+            const content = tinymce.getAttribute('contentInput').get();
             const image_filename = row.querySelector('.imageInput').value.trim();
 
             fetch(`/pages/${pageId}/update`, {
@@ -64,7 +64,7 @@
     });
 
     tinymce.init({
-        selector: '.slugInput, .titleInput, .contentInput, .imageInput',
+        selector: ".contentInput",
         height: 300,
         menubar: false,
         plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code help wordcount',

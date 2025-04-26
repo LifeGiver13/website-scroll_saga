@@ -1,6 +1,50 @@
 {%extends "default_page.html" %}
 {%block content%}
-<h1 class="text-center">{{ page.title}}</h1>
+<h1 class="text-center" style="margin-bottom: 20px;">{{ page.title }}</h1>
+{% if novels %}
+<div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
+    <!-- Indicators -->
+    <div class="carousel-indicators">
+        {% for novel in novels %}
+        <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ loop.index0 }}"
+            class="{% if loop.first %}active{% endif %}" aria-current="{% if loop.first %}true{% endif %}"
+            aria-label="Slide {{ loop.index }}"></button>
+        {% endfor %}
+    </div>
+
+    <!-- Slides -->
+    <div class="carousel-inner">
+        {% for novel in novels %}
+        <div class="carousel-item {% if loop.first %}active{% endif %}">
+            <img src="{{ url_for('static', filename='images/' + novel['cover_image']) }}" alt="Book Cover">
+
+            <div class="carousel-caption">
+                <h5 class="text-center">{{ novel["novel_title"] }}</h5>
+                <p>Description: <i>{{ novel["description"][:57] }}...</i></p>
+                <a href="/novel/{{ novel['novel_id'] }}/{{ novel['novel_title'] }}"
+                    class="btn btn-sm btn-warning mt-2">📖 Read
+                    Now!</a>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Controls -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+
+</div>
+{% else %}
+<p>No novels uploaded yet.</p>
+{% endif %}
+
 
 <div class="row">
     <div>
@@ -13,7 +57,7 @@
                 <img src="{{ url_for('static', filename='images/' + novel['cover_image']) }}" alt="Book Cover">
                 <h4 class="text-center">{{ novel["novel_title"] }}</h4>
                 <p>Novel Genre: {{ novel["genre"] }}</p>
-                <p>Description: <i>{{ novel["description"] }}</i></p>
+                <p>Description: <i>{{ novel["description"][:57]}}...</i></p>
                 <p>Author: <em>{{ novel["author"]}}</em></p>
                 <p><sub>Published Date: {{date}}</sub> </p>
 
@@ -32,5 +76,21 @@
     </div>
 
 </div>
+
+<style>
+    .carousel-item>img {
+        height: 500px;
+        width: 700px;
+        object-fit: cover;
+    }
+
+    @media (max-width: 745px) {
+        .carousel-item>img {
+            height: 300px;
+            width: 200px;
+
+        }
+    }
+</style>
 
 {%endblock%}
