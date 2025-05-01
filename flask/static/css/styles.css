@@ -1,3 +1,10 @@
+* {
+    padding: 2px;
+}
+
+
+
+
 #wrapper {
     background-color: whitesmoke;
     padding: 0.5em;
@@ -263,5 +270,19 @@ legend {
     .table-container {
         max-height: 400px;
         /* Ensures table doesn’t take up the entire screen */
+    }
+}
+
+.carousel-item>img {
+    height: 500px;
+    width: 700px;
+    object-fit: cover;
+}
+
+@media (max-width: 745px) {
+    .carousel-item>img {
+        height: 300px;
+        width: 200px;
+
     }
 }

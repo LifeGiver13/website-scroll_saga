@@ -1,0 +1,43 @@
+{%extends "admin_dashboard.html"%}
+{%block content%}
+<h2 class="mt-4">Recent Quiz</h2>
+<div class="table-container table-responsive">
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Quiz ID</th>
+                <th>Question</th>
+                <th>Answer</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for quiz in quizzes %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ quiz["quiz_id"] }}</td>
+                <td>{{ quiz["question"] }}</td>
+                <td>{{ quiz["answer"]}}</td>
+                <td>
+                    <form action="" method="delete">
+
+                        <button type="submit" onclick="delete_quiz(`{{quiz['quiz_id']}}`)"
+                            class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    async function delete_quiz(quiz_id) {
+        const response = await fetch(`/delete_quiz/${quiz_id}`, { method: "DELETE" });
+        const result = await response.json();
+        console.log("Deleted:", result);
+    }
+
+</script>
+{%endblock%}

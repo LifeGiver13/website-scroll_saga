@@ -66,50 +66,97 @@
                     </div>
                     {% endif %}
                 </div>
+                <h3>Reviews & Comments</h3>
 
-                <!-- Reviews Section -->
-                <div class="container mt-5">
-                    <h3 class="text-center" style="background-color: #8b5a2b; border-radius: 10px;">Reviews & Comments
-                    </h3>
+                {% if reviews|length > 4 %}
+                <button id="toggleReviewsBtn" class="btn btn-primary mb-3" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#reviewsCollapse" aria-expanded="false" aria-controls="reviewsCollapse">
+                    Show {{ reviews|length }} Reviews
+                </button>
 
+                <div class="collapse" id="reviewsCollapse">
                     <div id="reviewsContainer">
                         <p>Loading reviews...</p>
                     </div>
+                </div>
 
-                    <!-- Comment Form -->
-                    <div class="card mt-4">
-                        <div class="card-body">
-                            <h5 class="card-title">Add a Comment</h5>
-                            <form id="reviewForm">
-                                <div class="form-group">
-                                    <label for="content">Your Comment:</label>
-                                    <textarea class="form-control" id="content" name="content" rows="3"></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
-                            </form>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const toggleBtn = document.getElementById("toggleReviewsBtn");
+                        const reviewsCollapse = document.getElementById("reviewsCollapse");
+                        const totalReviews = `{{ reviews| length
+                    }}`;
+
+                        // Bootstrap collapse events
+                        reviewsCollapse.addEventListener('show.bs.collapse', function () {
+                            toggleBtn.textContent = "Hide Reviews";
+                        });
+
+                        reviewsCollapse.addEventListener('hide.bs.collapse', function () {
+                            toggleBtn.textContent = `Show ${totalReviews} Reviews`;
+                        });
+                    });
+                </script>
+
+                {% else %}
+                <div id="reviewsContainer">
+                    <p>Loading reviews...</p>
+                </div>
+                {% endif %}
+
+
+                <!-- Modal for Profile -->
+                <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-body text-center">
+                                <img id="modalProfilePhoto" src="" class="rounded-circle mb-3"
+                                    style="width: 100px; height: 100px;">
+                                <h5 id="modalUsername"></h5>
+                                <p id="modalBio" class="text-muted"></p>
+                                <button type="button" class="btn btn-secondary mt-2"
+                                    data-bs-dismiss="modal">Close</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                {% else %}
-                <div class="text-center py-5">
+
+
+                <!-- Comment Form -->
+                <div class="card mt-4">
                     <div class="card-body">
-                        <h2 class="mb-3">📚 {{ novel.novel_title }}</h2>
-                        <p class="lead">Please click -> <a data-bs-toggle="modal" data-bs-target="#loginModal"
-                                class="btn-dark">login</a> or click on Register button below to register
-                            to read
-                            this
-                            novel
-                            and add a comment.</p>
-                        <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}"
-                            class="rounded-circle d-block mx-auto mt-3" alt="Book Cover"
-                            style="width: 200px; height: 200px;">
-                        <p class="card-text text-muted">Description: <i>{{ novel.description }}</i></p>
-                        <p class="card-text text-muted">Genre: <i>{{ novel.genre }}</i></p>
-                        <p class="card-text text-muted">Theme: <i>{{ novel.theme }}</i></p>
-                        <p class="card-text"><small class="text-muted">{{ novel.publish_date }}</small></p>
+                        <h5 class="card-title">Add a Comment</h5>
+                        <form id="reviewForm">
+                            <div class="form-group">
+                                <label for="content">Your Comment:</label>
+                                <textarea class="form-control" id="content" name="content" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
+                        </form>
                     </div>
                 </div>
-                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="card-body">
+                    <h2 class="mb-3">📚 {{ novel.novel_title }}</h2>
+                    <p class="lead">Please click -> <a data-bs-toggle="modal" data-bs-target="#loginModal"
+                            class="btn-dark">login</a> or click on Register button below to register
+                        to read
+                        this
+                        novel
+                        and add a comment.</p>
+                    <img src="{{ url_for('static', filename='images/' + novel.cover_image) }}"
+                        class="rounded-circle d-block mx-auto mt-3" alt="Book Cover"
+                        style="width: 200px; height: 200px;">
+                    <p class="card-text text-muted">Description: <i>{{ novel.description }}</i></p>
+                    <p class="card-text text-muted">Genre: <i>{{ novel.genre }}</i></p>
+                    <p class="card-text text-muted">Theme: <i>{{ novel.theme }}</i></p>
+                    <p class="card-text"><small class="text-muted">{{ novel.publish_date }}</small></p>
+                </div>
+            </div>
+            {% endif %}
 </main>
 
 <!-- Optional Bootstrap JS (only if not in base template) -->
@@ -117,6 +164,7 @@
 
 
 <script>
+
     function fetchBooklist() {
         fetch("/my_booklist", {
             method: "GET",
@@ -302,6 +350,9 @@
         }); -->
 
 <script>
+
+
+
     document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("reviewForm");
         const contentInput = document.getElementById("content");
@@ -335,27 +386,51 @@
 
                     reviews.forEach(review => {
                         const reviewHTML = `
-                      <div class="mb-3 border-bottom pb-2">
-    <div class="d-flex align-items-center mb-1">
-        <img src="/static/images/${review.profile_photo}" alt="Profile Photo"
-            class="rounded-circle me-2" style="width: 40px; height: 40px;">
-        <strong>${review.username}</strong>
-    </div>
-    <div class="ms-5"> <!-- Indent to align with text, not image -->
-        <p class="mb-1">${review.review_text}</p>
-        <p class="mb-0"><sub class="text-muted">${new Date(review.publish_time).toLocaleString()}</sub></p>
-    </div>
-</div>
-
-                    `;
+        <div class="mb-3 border-bottom pb-2">
+            <div class="d-flex align-items-center mb-1">
+                <img src="/static/images/${review.profile_photo}" 
+                    alt="Profile Photo"
+                    class="rounded-circle me-2 profile-photo" 
+                    style="width: 40px; height: 40px; cursor: pointer;"
+                    data-username="${review.username}"
+                    data-photo="/static/images/${review.profile_photo}"
+                    data-bio="${review.user_bio || 'No bio available'}"
+                >
+                <strong>${review.username}</strong>
+            </div>
+            <div class="ms-5">
+                <p class="mb-1">${review.review_text}</p>
+                <p class="mb-0"><sub class="text-muted">${new Date(review.publish_time).toLocaleString()}</sub></p>
+            </div>
+        </div>
+        `;
                         reviewsContainer.insertAdjacentHTML("beforeend", reviewHTML);
                     });
+
+                    // ✅ After inserting reviews, add event listeners to all profile photos
+                    const profilePhotos = document.querySelectorAll('.profile-photo');
+                    profilePhotos.forEach(photo => {
+                        photo.addEventListener('click', () => {
+                            const username = photo.getAttribute('data-username');
+                            const userPhoto = photo.getAttribute('data-photo');
+                            const bio = photo.getAttribute('data-bio');
+
+                            document.getElementById('modalProfilePhoto').src = userPhoto;
+                            document.getElementById('modalUsername').textContent = username;
+                            document.getElementById('modalBio').textContent = bio;
+
+                            const profileModal = new bootstrap.Modal(document.getElementById('profileModal'));
+                            profileModal.show();
+                        });
+                    });
+
                 })
                 .catch(error => {
                     console.error("Error loading reviews:", error);
                     reviewsContainer.innerHTML = `<p class="text-danger">Error loading reviews. Please try again later.</p>`;
-                });
-        }
+                })
+        };
+
 
         // 🚀 Submit review
         form.addEventListener("submit", function (e) {

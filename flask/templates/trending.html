@@ -1,10 +1,11 @@
 {%extends "default_page.html" %}
 {%block content%}
-<h1 class="text-center" style="margin-bottom: 20px;">{{ page.title }}</h1>
+<h1 class="text-center" style="margin: 10px 20px; padding: 5px;">{{ page.title }}</h1>
+
 {% if novels %}
-<div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
+<div id="carouselExampleCaptions" class="carousel slide " data-bs-ride="carousel" style="padding:0; margin:10px 20px;">
     <!-- Indicators -->
-    <div class="carousel-indicators">
+    <div class="carousel-indicators p-0 m-0">
         {% for novel in novels %}
         <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="{{ loop.index0 }}"
             class="{% if loop.first %}active{% endif %}" aria-current="{% if loop.first %}true{% endif %}"
@@ -13,19 +14,19 @@
     </div>
 
     <!-- Slides -->
-    <div class="carousel-inner">
+    <div class="carousel-inner p-0 m-0">
         {% for novel in novels %}
         <div class="carousel-item {% if loop.first %}active{% endif %}">
-            <img src="{{ url_for('static', filename='images/' + novel['cover_image']) }}" alt="Book Cover">
+            <img src="{{ url_for('static', filename='images/' + novel['cover_image']) }}" alt="Book Cover"
+                class="d-block w-100"
+                style="object-fit: cover;width: 140px; height: 530px; margin: 5px 2px; padding:0px;">
 
-            <div class="carousel-caption">
-                <h5 class="text-center">{{ novel["novel_title"] }}</h5>
-                <p>Description: <i>{{ novel["description"][:57] }}...</i></p>
+            <div class="carousel-caption ">
+                <h5 class="text-center ">{{ novel["novel_title"] }}</h5>
+                <p class="m-0 p-0">Description: <i>{{ novel["description"][:57] }}...</i></p>
                 <a href="/novel/{{ novel['novel_id'] }}/{{ novel['novel_title'] }}"
-                    class="btn btn-sm btn-warning mt-2">📖 Read
-                    Now!</a>
+                    class="btn btn-sm btn-warning mt-1">📖 Read Now!</a>
             </div>
-
         </div>
         {% endfor %}
     </div>
@@ -42,9 +43,8 @@
 
 </div>
 {% else %}
-<p>No novels uploaded yet.</p>
+<p class="text-center">No novels uploaded yet.</p>
 {% endif %}
-
 
 <div class="row">
     <div>
@@ -77,20 +77,7 @@
 
 </div>
 
-<style>
-    .carousel-item>img {
-        height: 500px;
-        width: 700px;
-        object-fit: cover;
-    }
 
-    @media (max-width: 745px) {
-        .carousel-item>img {
-            height: 300px;
-            width: 200px;
 
-        }
-    }
-</style>
 
 {%endblock%}

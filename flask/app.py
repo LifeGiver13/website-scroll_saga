@@ -1,5 +1,5 @@
-from flask import render_template, request, jsonify, redirect, url_for, session, flash
-from flask import Flask, render_template, request, url_for, redirect, session, flash, jsonify
+from flask import Flask, render_template, request, url_for, redirect, session, flash, jsonify, make_response
+from flask_socketio import SocketIO, emit, join_room
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import pymysql
@@ -9,6 +9,7 @@ import json  # Required for SQLAlchemy MySQL connection
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
+import openai
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -32,6 +33,9 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+app.secret_key = os.urandom(24)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 
 class Page(db.Model):
@@ -182,14 +186,19 @@ class Chapters(db.Model):
 
     )
 
+
+class AnimeQuiz(db.Model):
+    __tablename__ = 'animequiz'
+
+    quiz_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    question = db.Column(db.String(255), nullable=False)
+    answer = db.Column(db.String(255), nullable=False)
+
     def to_dict(self):
         return {
-            "chapter_id": self.chapter_id,
-            "novel_id": self.novel_id,
-            "chapter_number": self.chapter_number,
-            "chapter_name": self.chapter_name,
-            "content": self.content,
-            "novel_title": self.novel_title
+            "quiz_id": self.quiz_id,
+            "question": self.question,
+            "answer": self.answer,
         }
 
 
@@ -655,32 +664,86 @@ def add_novel():
 def search():
     query = request.args.get('query')
     results = []
+    suggestion = None
     username = session.get("username")
     current_user = Users.query.filter_by(
         username=username).first() if username else None
 
     if query:
-        # Example: search in novel titles or descriptions
+        # Search normally
         results = Novel.query.filter(
             Novel.novel_title.ilike(f'%{query}%') |
             Novel.description.ilike(f'%{query}%')
         ).all()
 
-    return render_template('search_results.html', query=query, results=results, current_user=current_user)
+        # If no results, ask ChatGPT for suggestions
+        if not results:
+            try:
+                response = openai.ChatCompletion.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant for an anime novel website."},
+                        {"role": "user", "content": f"No novels found for '{query}'. Suggest something similar or generate a search suggestion."}
+                    ],
+                    temperature=0.7,
+                    max_tokens=100
+                )
+                suggestion = response['choices'][0]['message']['content']
+            except Exception as e:
+                print("Error talking to ChatGPT:", e)
+                suggestion = "Couldn't generate a suggestion right now. Please try different keywords."
 
-# @app.route("/")
-# def home():
-#     # Replace with the actual API endpoint
-#     api_url = "https://mangahook-api.vercel.app/?utm_source=chatgpt.com"
-#     response = requests.get(api_url)
+    return render_template('search_results.html', query=query, results=results, suggestion=suggestion, current_user=current_user)
 
-#     if response.status_code == 200:
-#         novels = response.json()  # Convert response to Python dictionary
-#     else:
-#         novels = []  # Empty list if API request fails
 
-#     # Pass data to Jinja template
-#     return render_template("index.html", novels=novels)
+@app.route('/pages/create', methods=['POST'])
+def create_page():
+    data = request.get_json()
+
+    slug = data.get('slug')
+    title = data.get('title')
+    content = data.get('content')
+    image_filename = data.get('image_filename')
+
+    if not slug or not title or not content:
+        return jsonify({'success': False, 'error': 'Slug, title, and content are required'}), 400
+
+    # Optional: Check if slug already exists
+    existing_page = Page.query.filter_by(slug=slug).first()
+    if existing_page:
+        return jsonify({'success': False, 'error': 'Slug already exists'}), 400
+
+    # Create a new Page object
+    new_page = Page(
+        slug=slug,
+        title=title,
+        content=content,
+        image_filename=image_filename
+    )
+
+    try:
+        db.session.add(new_page)
+        db.session.commit()
+        return jsonify({'success': True, 'page_id': new_page.id}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route("/delete_page/<int:page_id>", methods=["POST", "DELETE"])
+def delete_page(page_id):
+    page = Page.query.get_or_404(page_id)
+    db.session.delete(page)
+    db.session.commit()
+    return redirect(url_for("panel"))
+
+
+@app.route("/delete_chapter/<int:chapter_id>", methods=["POST", "DELETE"])
+def delete_chapter(chapter_id):
+    chapter = Chapters.query.get_or_404(chapter_id)
+    db.session.delete(chapter)
+    db.session.commit()
+    return redirect(url_for("panel"))
 
 
 @app.route("/delete_novel/<int:novel_id>", methods=["POST", "DELETE"])
@@ -1060,6 +1123,103 @@ def panel():
 
     # If the user is an admin, render the admin dashboard
     return render_template("admin_dashboard.html", page_title="Admin Panel")
+
+
+@app.route("/quiz", methods=["GET"])
+def getAllQuiz():
+    quizzes = AnimeQuiz.query.all()
+    quizzes_list = [quiz.to_dict() for quiz in quizzes]
+    response = make_response(json.dumps(quizzes_list))
+    response.headers["Content-Type"] = "application/json"
+    return render_template('/quizManag.html', quizzes=quizzes_list, response=response)
+
+
+# This route returns JSON data only — for fetch('/api/quiz')
+@app.route("/api/quiz", methods=["GET"])
+def getAllQuizAPI():
+    quizzes = AnimeQuiz.query.all()
+    quizzes_list = [quiz.to_dict() for quiz in quizzes]
+    response = make_response(json.dumps(quizzes_list))
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+
+@app.route("/api/quiz/random", methods=["GET"])
+def get_random_quiz():
+    quiz = AnimeQuiz.query.order_by(
+        db.func.rand()).first()  # random row from MySQL
+    if not quiz:
+        return make_response(json.dumps([]), 200)
+
+    response = make_response(json.dumps(quiz.to_dict()))
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+
+@app.route("/quizi", methods=["POST"])
+def createQuiz():
+    data = request.get_json()
+    question = data.get("question")
+    answer = data.get("answer")
+
+    if not question or not answer:
+        return make_response(json.dumps({"message": "Invalid data"}), 400)
+
+    new_quiz = AnimeQuiz(question=question, answer=answer)
+    db.session.add(new_quiz)
+    db.session.commit()
+
+    response = make_response(json.dumps(new_quiz.to_dict()))
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+
+@app.route("/delete_quiz/<int:quiz_id>", methods=["POST", "DELETE"])
+def delete_quiz(quiz_id):
+    quiz = AnimeQuiz.query.get_or_404(quiz_id)
+    db.session.delete(quiz)
+    db.session.commit()
+    return redirect(url_for("panel"))
+
+
+@app.route("/comm")
+def chat():
+    username = session.get('username')
+    user = Users.query.get(username)
+    return render_template("community.html", current_user=user)
+
+
+@socketio.on('join')
+def handle_join(data):
+    username = data.get('username')
+    if not username:
+        return  # ignore if no username sent
+
+    # Optional: validate user exists in DB
+    user = Users.query.filter_by(username=username).first()
+    if not user:
+        return  # ignore unknown users
+
+    room = 'global'
+    join_room(room)
+    emit('message', {'user': 'System',
+         'msg': f'{username} has joined the chat'}, room=room)
+
+
+@socketio.on('send_message')
+def handle_message(data):
+    username = data.get('user')
+    msg = data.get('msg')
+
+    if not username or not msg:
+        return
+
+    # Optional: ensure message comes from a known user
+    user = Users.query.filter_by(username=username).first()
+    if not user:
+        return
+
+    emit('message', {'user': username, 'msg': msg}, room='global')
 
 
 # Run the Flask app

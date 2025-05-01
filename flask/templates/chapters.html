@@ -36,7 +36,10 @@
                         data-bs-target="#editChapterModal" onclick="editChapter(`{{chapter['chapter_id']}}`)">
                         Update
                     </button>
-
+                    <form action="" method="delete">
+                        <button type="submit" onclick="delete_chapter(`{{chapter['chapter_id']}}`)"
+                            class="btn btn-sm btn-danger" disabled>Delete</button>
+                    </form>
 
                 </td>
 
@@ -241,7 +244,11 @@
                 alert("An error occurred.");
             });
     }
-
+    async function delete_chapter(chapter_id) {
+        const response = await fetch(`/delete_chapter/${chapter_id}`, { method: "DELETE" });
+        const result = await response.json();
+        console.log("Deleted:", result);
+    }
 </script>
 
 {%endblock%}

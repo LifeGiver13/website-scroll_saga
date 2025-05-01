@@ -1,6 +1,9 @@
 {%extends "admin_dashboard.html"%}
 {%block content%}
 <h2 class="mt-4"> 📂 Available Pages</h2>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPageModal">
+    Add New Page
+</button>
 <div class="table-container table-responsive">
     <table class="table table-striped mt-3">
         <thead>
@@ -23,11 +26,58 @@
                 <td><input type="text" class="titleInput" value="{{ data.title }}"></td>
                 <td><textarea class="contentInput">{{ data.content }}</textarea></td>
                 <td><input type="text" class="imageInput" value="{{ data.image_filename }}"></td>
-                <td><button class="btn btn-warning updatePageBtn">Update</button></td>
+                <td>
+
+                    <button class="btn btn-warning updatePageBtn">Update</button>
+                    <form action="" method="delete">
+
+                        <button type="submit" onclick="delete_page(`{{page['page_id']}}`)"
+                            class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+
+                </td>
             </tr>
         </tbody>
         {% endfor %}
     </table>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="addPageModal" tabindex="-1" aria-labelledby="addPageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPageModalLabel">Create New Page</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="addPageForm">
+                    <div class="mb-3">
+                        <label for="newSlugInput" class="form-label">Slug</label>
+                        <input type="text" class="form-control newSlugInput" id="newSlugInput" placeholder="Slug">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newTitleInput" class="form-label">Title</label>
+                        <input type="text" class="form-control newTitleInput" id="newTitleInput" placeholder="Title">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newContentInput" class="form-label">Content</label>
+                        <textarea id="newContentInput"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newImageInput" class="form-label">Image Filename</label>
+                        <input type="text" class="form-control newImageInput" id="newImageInput"
+                            placeholder="Image filename">
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success addPageBtn">Save Page</button>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
     document.querySelectorAll('.updatePageBtn').forEach(button => {
@@ -37,7 +87,7 @@
 
             const slug = row.querySelector('.slugInput').value.trim();
             const title = row.querySelector('.titleInput').value.trim();
-            const content = tinymce.getAttribute('contentInput').get();
+            const content = tinymce.getAttribute('contentInput').getContent();
             const image_filename = row.querySelector('.imageInput').value.trim();
 
             fetch(`/pages/${pageId}/update`, {
@@ -64,13 +114,55 @@
     });
 
     tinymce.init({
-        selector: ".contentInput",
+        selector: ".contentInput, #newContentInput",
         height: 300,
         menubar: false,
         plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code help wordcount',
         toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help'
-    });</script>
+    });
+
+    document.querySelector('.addPageBtn').addEventListener('click', () => {
+        const slug = document.querySelector('.newSlugInput').value.trim();
+        const title = document.querySelector('.newTitleInput').value.trim();
+        const content = tinymce.get('newContentInput').getContent();
+        const image_filename = document.querySelector('.newImageInput').value.trim();
+
+        fetch('/pages/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                slug,
+                title,
+                content,
+                image_filename
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Page added successfully!');
+                    location.reload();
+                } else {
+                    alert(data.error || 'Page creation failed');
+                }
+            });
+    });
+
+
+
+    async function delete_page(review_id) {
+        const response = await fetch(`/delete_page/${page_id}`, { method: "DELETE" });
+        const result = await response.json();
+        console.log("Deleted:", result);
+
+    }
 
 </script>
+
+
+
+
 
 {%endblock%}

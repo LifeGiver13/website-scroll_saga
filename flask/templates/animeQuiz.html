@@ -1,0 +1,147 @@
+{% extends "default_page.html" %}
+{% block content %}
+<!-- discovery.html -->
+<h1 class="text-center">{{ page.title}}</h1>
+<div style="margin: 5px;">{{ page.content|safe }}
+
+    <div class="container mt-4">
+        <div class="container">
+            <h1 class="m-3">Prove Me that You are A Real Otaku!</h1>
+            <div class="accordion" id="anime-accordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="anime1Question">
+                        <button class="accordion-button collapsed" onclick="getQuiz()" data-bs-toggle="collapse"
+                            data-bs-target="#anime1Answer">
+                            <p id="question">---</p>
+                        </button>
+                    </h2>
+                    <div class="accordion-collapse collapse" id="anime1Answer" data-bs-parent="#anime-accordion">
+                        <div class="accordion-body">
+                            <p id="answer">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Toast Container -->
+            <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+                <div id="toast-success" class="toast align-items-center text-bg-success border-0" role="alert"
+                    aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            Quiz added successfully!
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                            aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <form action="" method="post" enctype="multipart/form-data">
+                <p>Enter a question and its corresponding answer.</p>
+                <input type="text" name="quest" id="quest" placeholder="Enter a question" class="form-control mb-2">
+                <input type="text" name="ans" id="ans" placeholder="Enter the answer" class="form-control mb-2">
+            </form>
+
+            <button class="btn btn-primary" onclick="createQuiz()">Add Quiz</button>
+            <button class="btn btn-secondary" onclick="getAllQuiz()">Load all questions</button>
+            <!-- <p id="question1">/?/</p>
+                <p id="answer1">&&</p> -->
+            <p id="allQuiz"></p>
+
+            <div class="accordion mt-3" id="anime-accordion">
+                <!-- New questions will be added here dynamically -->
+            </div>
+        </div>
+
+
+        <script>
+            async function createQuiz() {
+                console.log("Adding Quiz");
+                const quest = document.getElementById("quest").value.trim();
+                const ans = document.getElementById("ans").value.trim();
+
+                if (!quest || !ans) return;
+
+                const anime = {
+                    'question': quest,
+                    'answer': ans
+                };
+
+                const response = await fetch('/quizi', {
+                    method: "POST",
+                    body: JSON.stringify(anime),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (response.ok) {
+                    const quiz = await response.json();
+                    console.log(quiz);
+
+                    // Clear inputs
+                    document.getElementById("quest").value = "";
+                    document.getElementById("ans").value = "";
+
+                    // Show success toast
+                    const toastEl = document.getElementById('toast-success');
+                    const toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+                }
+            }
+
+            async function getAllQuiz() {
+                console.log("Fetching All Quiz");
+                try {
+                    const response = await fetch('/api/quiz');  // use the new route
+                    const quizList = await response.json();
+
+                    document.getElementById("allQuiz").innerHTML = quizList.map((item, index) => `
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading${index}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapse${index}">
+                        ${item.question}
+                    </button>
+                </h2>
+                <div id="collapse${index}" class="accordion-collapse collapse" data-bs-parent="#anime-accordion">
+                    <div class="accordion-body">
+                        ${item.answer}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+                } catch (error) {
+                    console.error("Error fetching quiz list:", error);
+                    document.getElementById("allQuiz").innerHTML = "<p>Error loading quiz data.</p>";
+                }
+            }
+
+            async function getQuiz() {
+                console.log("Fetching One Random Question");
+
+                try {
+                    const response = await fetch('/api/quiz/random');
+                    const quiz = await response.json();
+
+                    if (!quiz || !quiz.question) {
+                        document.getElementById("question").innerHTML = "No quizzes available.";
+                        document.getElementById("answer").innerHTML = "--";
+                        return;
+                    }
+
+                    document.getElementById("question").innerHTML = quiz.question;
+                    document.getElementById("answer").innerHTML = quiz.answer;
+                } catch (error) {
+                    console.error("Error fetching single quiz:", error);
+                    document.getElementById("question").innerHTML = "Error loading quiz.";
+                    document.getElementById("answer").innerHTML = "--";
+                }
+            }
+
+        </script>
+
+        {% endblock %}
+    </div>

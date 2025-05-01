@@ -82,6 +82,9 @@
                                     <li class="nav-item"><a href="{{ url_for('show_page', slug='saga_news') }}">Saga
                                             News</a>
                                     </li>
+                                    <li class="nav-item"><a href="{{ url_for('show_page', slug='animeQuiz') }}">Anime
+                                            Quiz</a>
+                                    </li>
                                     <!-- Search -->
                                     <li class="nav-item">
                                         <form class="d-flex" action="{{ url_for('search') }}" method="GET">
@@ -128,31 +131,33 @@
                                         </a>
 
 
-                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                        <ul class="dropdown-menu dropdown-menu-end border-0 rounded-4 shadow"
+                                            aria-labelledby="userDropdown" style="background-color: #fffaf0;">
                                             <li class="dropdown-item-text">
-                                                <small class="text-muted">{{current_user.user_bio }}</small>
+                                                <small class="text-muted">{{ current_user.user_bio }}</small>
                                             </li>
                                             <li>
                                                 <hr class="dropdown-divider">
                                             </li>
-                                            <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a>
-                                            </li>
-                                            <li><a class="dropdown-item" href="/settings">Settings</a></li>
-                                            <li><a class="dropdown-item text-danger"
+                                            <li><a class="dropdown-item fw-semibold"
+                                                    href="{{ url_for('profile') }}">Profile</a></li>
+                                            <li><a class="dropdown-item fw-semibold" href="/settings">Settings</a></li>
+                                            <li><a class="dropdown-item fw-semibold text-danger"
                                                     href="{{ url_for('logout') }}">Logout</a></li>
                                         </ul>
+                                    </li>
 
 
-                                        {% else %}
-                                        <div class="d-flex gap-2">
-                                            <a class="btn btn-dark" data-bs-toggle="modal"
-                                                data-bs-target="#loginModal">Login</a>
-                                            <a class="btn btn-light" data-bs-toggle="modal"
-                                                data-bs-target="#registerModal">Register</a>
+                                    {% else %}
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-dark" data-bs-toggle="modal"
+                                            data-bs-target="#loginModal">Login</a>
+                                        <a class="btn btn-light" data-bs-toggle="modal"
+                                            data-bs-target="#registerModal">Register</a>
 
-                                        </div>
+                                    </div>
 
-                                        {% endif %}
+                                    {% endif %}
 
 
                                     </li>
@@ -169,23 +174,31 @@
                     <!-- Login Modal -->
                     <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel"
                         aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content" style="background-color: #d8a16d;">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 rounded-4" style="background-color: #fff7e6;">
+                                <div class="modal-header border-0">
+                                    <h5 class="modal-title fw-bold" id="loginModalLabel" style="color:#8b5a2b;">Login
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label class="form-label">Username</label>
-                                        <input type="text" class="form-control" id="loginUsername" required />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Password</label>
-                                        <input type="password" class="form-control" id="loginPassword" required />
-                                    </div>
-                                    <button class="btn w-100" style="background-color:#f5deb3; border:1px solid #333;"
-                                        onclick="handleLogin()">Login</button>
+                                    <form id="loginForm">
+                                        <div class="mb-3">
+                                            <label for="loginUsername" class="form-label">Username</label>
+                                            <input type="text" class="form-control rounded-3" id="loginUsername"
+                                                required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="loginPassword" class="form-label">Password</label>
+                                            <input type="password" class="form-control rounded-3" id="loginPassword"
+                                                required>
+                                        </div>
+                                        <button type="button" onclick="handleLogin()" class="btn w-100 mt-3 fw-bold"
+                                            style="background-color:#d8a16d; border:1px solid #8b5a2b; color: #1e1e2e;">
+                                            Login
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -194,39 +207,50 @@
                     <!-- Register Modal -->
                     <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel"
                         aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content" style="background-color: #f5deb3;">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="registerModalLabel">Register</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 rounded-4" style="background-color: #fff7e6;">
+                                <div class="modal-header border-0">
+                                    <h5 class="modal-title fw-bold" id="registerModalLabel" style="color:#8b5a2b;">
+                                        Register</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label class="form-label">Username</label>
-                                        <input type="text" class="form-control" id="registerUsername" required />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="registerEmail" required />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Password</label>
-                                        <input type="password" class="form-control" id="registerPassword" required />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Confirm Password</label>
-                                        <input type="password" class="form-control" id="confirmPassword" required />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Bio</label>
-                                        <textarea class="form-control" id="user_bio"></textarea>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Profile Photo</label>
-                                        <input type="file" class="form-control" id="profilePhoto" accept="image/*" />
-                                    </div>
-                                    <button class="btn w-100" style="background-color:#d8a16d; border:1px solid #333;"
-                                        onclick="handleRegister()">Register </button>
+                                    <form id="registerForm">
+                                        <div class="mb-3">
+                                            <label for="registerUsername" class="form-label">Username</label>
+                                            <input type="text" class="form-control rounded-3" id="registerUsername"
+                                                required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="registerEmail" class="form-label">Email</label>
+                                            <input type="email" class="form-control rounded-3" id="registerEmail"
+                                                required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="registerPassword" class="form-label">Password</label>
+                                            <input type="password" class="form-control rounded-3" id="registerPassword"
+                                                required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                            <input type="password" class="form-control rounded-3" id="confirmPassword"
+                                                required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="user_bio" class="form-label">Bio</label>
+                                            <textarea class="form-control rounded-3" id="user_bio" rows="2"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="profilePhoto" class="form-label">Profile Photo</label>
+                                            <input type="file" class="form-control rounded-3" id="profilePhoto"
+                                                accept="image/*">
+                                        </div>
+                                        <button type="button" onclick="handleRegister()" class="btn w-100 mt-3 fw-bold"
+                                            style="background-color:#d8a16d; border:1px solid #8b5a2b; color: #1e1e2e;">
+                                            Register
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
