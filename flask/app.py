@@ -186,6 +186,16 @@ class Chapters(db.Model):
 
     )
 
+    def to_dict(self):
+        return {
+            "chapter_id": self.chapter_id,
+            "novel_id": self.novel_id,
+            "chapter_number": self.chapter_number,
+            "chapter_name": self.chapter_name,
+            "content": self.content,
+            "novel_title": self.novel_title
+        }
+
 
 class AnimeQuiz(db.Model):
     __tablename__ = 'animequiz'
@@ -1185,7 +1195,13 @@ def delete_quiz(quiz_id):
 @app.route("/comm")
 def chat():
     username = session.get('username')
-    user = Users.query.get(username)
+    if username:
+        user = Users.query.filter_by(username=username).first()
+
+        # user = Users.query.filter_by(username=username).first()
+    else:
+        user = None
+
     return render_template("community.html", current_user=user)
 
 
@@ -1210,16 +1226,17 @@ def handle_join(data):
 def handle_message(data):
     username = data.get('user')
     msg = data.get('msg')
+    room = 'global'
+    if username and msg:
+        emit('message', {'user': username, 'msg': msg}, room=room)
 
-    if not username or not msg:
-        return
 
-    # Optional: ensure message comes from a known user
-    user = Users.query.filter_by(username=username).first()
-    if not user:
-        return
-
-    emit('message', {'user': username, 'msg': msg}, room='global')
+@socketio.on('disconnect')
+def handle_disconnect():
+    username = session.get("username")
+    if username:
+        emit('message', {'user': 'System',
+             'msg': f'{username} has left the chat'}, room='global')
 
 
 # Run the Flask app

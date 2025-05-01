@@ -1,0 +1,73 @@
+{% extends "default_page.html" %}
+{% block content %}
+<script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+
+<h2>Community Chat</h2>
+
+{% if current_user.username %}
+
+<script>
+
+    let currentUsername = null;
+    if (!currentUsername) {
+        currentUsername = "Guest-" + Math.floor(Math.random() * 1000);
+    }
+
+
+    currentUsername = "{{ current_user.username | e }}";
+</script>
+
+{% else %}
+<div id="usernamePrompt" style="display: none;">
+
+    <div id="usernamePrompt">
+        <input type="text" id="username" placeholder="Enter your name" />
+        <button onclick="joinChat()">Join</button>
+    </div>
+    <script>
+
+    </script>
+    {% endif %}
+
+    <div id="chatBox" style="height: 300px; overflow-y: scroll; border: 1px solid black; margin-top:10px;"></div>
+    <input type="text" id="messageInput" placeholder="Your message" />
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        let socket;
+
+        window.onload = function () {
+            if (currentUsername) {
+                joinChat();
+                const usernamePrompt = document.getElementById("usernamePrompt");
+                if (usernamePrompt) {
+                    usernamePrompt.style.display = "none";
+                }
+            }
+        };
+
+        function joinChat() {
+            if (!currentUsername) {
+                const usernameInput = document.getElementById("username");
+                if (!usernameInput.value) return alert("Enter your name first");
+                currentUsername = usernameInput.value;
+            }
+
+            socket = io();
+            socket.emit('join', { username: currentUsername });
+
+            socket.on('message', (data) => {
+                const chatBox = document.getElementById("chatBox");
+                chatBox.innerHTML += `<p><strong>${data.user}:</strong> ${data.msg}</p>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+
+        function sendMessage() {
+            const msg = document.getElementById("messageInput").value;
+            if (!msg || !socket) return;
+            socket.emit('send_message', { user: currentUsername, msg: msg });
+            document.getElementById("messageInput").value = '';
+        }
+    </script>
+    {% endblock %}
